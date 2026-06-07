@@ -1,0 +1,137 @@
+{
+  "info": {
+    "name": "Auto Dealer API",
+    "description": "Coleção da API de compra e venda de veículos. Faça login em Auth > Login (ADMIN) para popular {{accessToken}} automaticamente.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "vehicleId", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success) {",
+                  "  pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@autodealer.local\",\n  \"password\": \"Admin@123\"\n}" }
+          }
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/refresh", "host": ["{{baseUrl}}"], "path": ["auth", "refresh"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        },
+        {
+          "name": "Register (CUSTOMER)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] },
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Novo Cliente\",\n  \"email\": \"novo@cliente.com\",\n  \"password\": \"Senha@123\",\n  \"document\": \"52998224725\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vehicle Specs",
+      "item": [
+        { "name": "Brands", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/vehicle-specs/brands", "host": ["{{baseUrl}}"], "path": ["vehicle-specs", "brands"] } } },
+        { "name": "Search spec", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/vehicle-specs/search?brand=Volkswagen&model=T-Cross&year=2023", "host": ["{{baseUrl}}"], "path": ["vehicle-specs", "search"], "query": [{ "key": "brand", "value": "Volkswagen" }, { "key": "model", "value": "T-Cross" }, { "key": "year", "value": "2023" }] } } }
+      ]
+    },
+    {
+      "name": "Vehicles",
+      "item": [
+        {
+          "name": "Create vehicle",
+          "event": [
+            { "listen": "test", "script": { "exec": ["const j = pm.response.json(); if (j.success) pm.collectionVariables.set('vehicleId', j.data.id);"], "type": "text/javascript" } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/vehicles", "host": ["{{baseUrl}}"], "path": ["vehicles"] },
+            "body": { "mode": "raw", "raw": "{\n  \"brand\": \"Volkswagen\",\n  \"model\": \"T-Cross\",\n  \"version\": \"200 TSI\",\n  \"manufactureYear\": 2022,\n  \"modelYear\": 2023,\n  \"announcedPrice\": 119900,\n  \"purchasePrice\": 95000,\n  \"availableForAd\": true\n}" }
+          }
+        },
+        { "name": "List vehicles", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/vehicles?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["vehicles"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }] } } },
+        { "name": "Apply specs", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{baseUrl}}/vehicles/{{vehicleId}}/apply-specs", "host": ["{{baseUrl}}"], "path": ["vehicles", "{{vehicleId}}", "apply-specs"] }, "body": { "mode": "raw", "raw": "{\n  \"brand\": \"Volkswagen\",\n  \"model\": \"T-Cross\",\n  \"year\": 2023\n}" } } },
+        { "name": "Change status", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{baseUrl}}/vehicles/{{vehicleId}}/status", "host": ["{{baseUrl}}"], "path": ["vehicles", "{{vehicleId}}", "status"] }, "body": { "mode": "raw", "raw": "{\n  \"status\": \"AVAILABLE\"\n}" } } }
+      ]
+    },
+    {
+      "name": "Commercial",
+      "item": [
+        { "name": "Create sale", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{baseUrl}}/sales", "host": ["{{baseUrl}}"], "path": ["sales"] }, "body": { "mode": "raw", "raw": "{\n  \"vehicleId\": \"{{vehicleId}}\",\n  \"customerId\": \"<customerId>\",\n  \"negotiatedPrice\": 116000\n}" } } },
+        { "name": "Complete sale", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{baseUrl}}/sales/<saleId>/status", "host": ["{{baseUrl}}"], "path": ["sales", "<saleId>", "status"] }, "body": { "mode": "raw", "raw": "{\n  \"status\": \"COMPLETED\",\n  \"finalPrice\": 116000\n}" } } }
+      ]
+    },
+    {
+      "name": "Financial & DRE",
+      "item": [
+        { "name": "DRE by vehicle", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/dre/vehicle/{{vehicleId}}", "host": ["{{baseUrl}}"], "path": ["dre", "vehicle", "{{vehicleId}}"] } } },
+        { "name": "DRE consolidated", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/dre/consolidated", "host": ["{{baseUrl}}"], "path": ["dre", "consolidated"] } } }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        { "name": "Admin", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/dashboard/admin", "host": ["{{baseUrl}}"], "path": ["dashboard", "admin"] } } }
+      ]
+    },
+    {
+      "name": "Public",
+      "item": [
+        { "name": "Catalog", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": { "raw": "{{baseUrl}}/public/vehicles?page=1&limit=12", "host": ["{{baseUrl}}"], "path": ["public", "vehicles"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "12" }] } } },
+        { "name": "Featured", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": { "raw": "{{baseUrl}}/public/vehicles/featured", "host": ["{{baseUrl}}"], "path": ["public", "vehicles", "featured"] } } },
+        { "name": "Filters", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": { "raw": "{{baseUrl}}/public/filters", "host": ["{{baseUrl}}"], "path": ["public", "filters"] } } },
+        { "name": "Store location", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": { "raw": "{{baseUrl}}/public/store/location", "host": ["{{baseUrl}}"], "path": ["public", "store", "location"] } } },
+        { "name": "Specialist contact (WhatsApp)", "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{baseUrl}}/public/leads/specialist-contact", "host": ["{{baseUrl}}"], "path": ["public", "leads", "specialist-contact"] }, "body": { "mode": "raw", "raw": "{\n  \"vehicleId\": \"{{vehicleId}}\",\n  \"name\": \"Visitante\",\n  \"phone\": \"54988887777\"\n}" } } }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        { "name": "Vehicles stock (JSON)", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/reports/vehicles-stock", "host": ["{{baseUrl}}"], "path": ["reports", "vehicles-stock"] } } },
+        { "name": "Commissions (CSV)", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/reports/commissions?format=csv", "host": ["{{baseUrl}}"], "path": ["reports", "commissions"], "query": [{ "key": "format", "value": "csv" }] } } }
+      ]
+    }
+  ]
+}

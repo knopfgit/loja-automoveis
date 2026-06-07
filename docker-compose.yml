@@ -1,0 +1,75 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: autodealer_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-autodealer}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-autodealer}
+      POSTGRES_DB: ${POSTGRES_DB:-autodealer}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-autodealer}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: autodealer_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: local SMTP catcher for inspecting emails during development.
+  # Web UI available at http://localhost:8025
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: autodealer_mailhog
+    restart: unless-stopped
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+
+  # The API itself. Commented profile so `docker compose up -d` only starts
+  # infrastructure during local dev (you run the API with `npm run start:dev`).
+  # Enable with: docker compose --profile app up -d --build
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: autodealer_api
+    restart: unless-stopped
+    profiles: ['app']
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-autodealer}:${POSTGRES_PASSWORD:-autodealer}@postgres:5432/${POSTGRES_DB:-autodealer}?schema=public
+      REDIS_HOST: redis
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+      MAIL_DRIVER: smtp
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./storage:/app/storage
+
+volumes:
+  postgres_data:
+  redis_data:
