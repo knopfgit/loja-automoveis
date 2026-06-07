@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Auto Dealer API — Visão Geral do Backend</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    color: #1a1f2b;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  h1 { font-size: 24px; color: #0f3d5c; margin-bottom: 4px; }
+  h2 {
+    font-size: 16px; color: #0f3d5c; margin-top: 26px; margin-bottom: 8px;
+    border-bottom: 2px solid #0f3d5c; padding-bottom: 4px; page-break-after: avoid;
+  }
+  h3 { font-size: 13px; color: #1f6f8b; margin-top: 16px; margin-bottom: 6px; page-break-after: avoid; }
+  h4 { font-size: 11.5px; color: #2b2b2b; margin-top: 10px; margin-bottom: 4px; }
+  p { margin: 4px 0; text-align: justify; }
+  .cover { text-align: center; padding-top: 90px; page-break-after: always; }
+  .cover h1 { font-size: 30px; }
+  .cover .subtitle { font-size: 15px; color: #444; margin-top: 6px; }
+  .cover .meta { margin-top: 60px; font-size: 12px; color: #666; }
+  .badge {
+    display: inline-block; background:#0f3d5c; color:#fff; border-radius:4px;
+    padding: 2px 8px; font-size: 10px; margin: 2px;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 10px; }
+  th, td { border: 1px solid #cdd6df; padding: 5px 7px; text-align: left; vertical-align: top; }
+  th { background: #e7eef4; color: #0f3d5c; }
+  tr:nth-child(even) td { background: #f7fafc; }
+  code, .code {
+    font-family: "Consolas", "Courier New", monospace; background: #eef2f6;
+    border-radius: 3px; padding: 1px 4px; font-size: 10px; color: #b3261e;
+  }
+  pre {
+    background: #0f1620; color: #d8e3ec; padding: 10px 12px; border-radius: 6px;
+    font-size: 9.5px; overflow-x: auto; line-height: 1.4; page-break-inside: avoid;
+  }
+  ul, ol { margin: 4px 0 8px 18px; }
+  li { margin-bottom: 2px; }
+  .why { background:#fff7e6; border-left: 3px solid #e3a008; padding: 6px 10px; margin: 6px 0; }
+  .why b { color:#a86a00; }
+  .how { background:#e9f6ee; border-left: 3px solid #1f9d55; padding: 6px 10px; margin: 6px 0; }
+  .how b { color:#1f9d55; }
+  .section-break { page-break-before: always; }
+  .small { font-size: 9.5px; color: #555; }
+  footer-note { font-size: 9px; color: #888; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>Auto Dealer API</h1>
+  <div class="subtitle">Backend completo para plataforma de compra e venda de veículos</div>
+  <div class="subtitle">Visão geral de funcionalidades, motivos de criação e uso de cada controle</div>
+  <div class="meta">
+    <p><b>Stack:</b> Node.js · TypeScript · NestJS · PostgreSQL · Prisma ORM · Redis · Socket.IO/SSE · Docker</p>
+    <p><b>Repositório:</b> github.com/knopfgit/site-coser (branch <span class="code">main</span>)</p>
+    <p><b>Data do documento:</b> 07/06/2026</p>
+    <p><b>Autor técnico:</b> Backend gerado e documentado via Claude (Anthropic) — pronto para integração com o frontend</p>
+  </div>
+</div>
+
+<h2>1. Objetivo deste documento</h2>
+<p>
+Este documento serve como <b>handoff técnico para o time de frontend</b> (e para uso com assistentes
+como Claude Code / ChatGPT durante a construção da interface). Ele explica <b>o que foi construído</b>,
+<b>como foi construído</b>, <b>por que cada peça existe</b> e <b>como ela deve ser usada</b> a partir do
+frontend. A documentação operacional detalhada (endpoints, payloads, eventos, exemplos) está em
+<span class="code">docs/*.md</span> e na coleção <span class="code">docs/postman_collection.json</span>
+dentro do repositório — este PDF é o "mapa" que conecta tudo isso.
+</p>
+
+<h2>2. Arquitetura geral — o que foi feito e por quê</h2>
+<p>O backend foi construído em <b>NestJS</b> (framework Node.js modular sobre Express, com injeção de
+dependência e forte tipagem TypeScript), seguindo arquitetura em camadas por módulo de domínio:
+<span class="code">Controller → Service → Prisma (ORM) → PostgreSQL</span>, com infraestrutura
+transversal (auth, cache, storage, e-mail, realtime, auditoria) compartilhada entre módulos.</p>
+
+<div class="why"><b>Por que NestJS + Prisma + PostgreSQL?</b> Era o stack exigido pela especificação do
+projeto. NestJS organiza o código em módulos coesos (cada domínio — veículos, vendas, clientes — vira
+um módulo isolado, testável e substituível), o que facilita tanto a manutenção quanto a divisão de
+trabalho entre back e frontend. Prisma fornece tipagem ponta-a-ponta do banco (o TypeScript "enxerga"
+as tabelas), migrações versionadas e proteção contra SQL injection. PostgreSQL é robusto para dados
+relacionais com integridade referencial — essencial num domínio com dezenas de entidades interligadas
+(veículo → estoque → venda → comissão → DRE).</div>
+
+<div class="how"><b>Como o frontend usa isso na prática:</b> o frontend nunca acessa o banco — fala
+exclusivamente HTTP/WebSocket com a API REST em <span class="code">/api</span> (ou o gateway de
+realtime). Toda a estrutura de dados retornada já vem tipada e estável, documentada em
+<span class="code">docs/DATABASE_MODEL.md</span> e <span class="code">docs/API_ENDPOINTS.md</span>.</div>
+
+<h3>2.1 Estrutura de pastas</h3>
+<pre>
+src/
+├── main.ts, app.module.ts          # bootstrap e wiring global
+├── config/                         # leitura tipada do .env
+├── common/                         # guards, decorators, filtros, interceptors, validadores BR
+├── prisma/  redis/  storage/  mail/  audit/  realtime/   # infraestrutura compartilhada
+└── modules/
+    ├── auth, users, employees, customers
+    ├── vehicle-specs, vehicles  (+ stock.service)
+    ├── parts (+ suppliers), maintenance
+    ├── documents
+    ├── commercial (acquisitions, reservations, sales), financial (DRE), commissions
+    ├── leads, store, privacy, notifications, dashboard, public, reports
+    └── jobs
+prisma/        → schema.prisma, migrations/, seed.ts
+docs/          → 10 manuais .md + coleção Postman
+test/          → testes e2e
+</pre>
+
+<h2>3. Padrão de resposta da API (envelope) — motivo e uso</h2>
+<div class="why"><b>Motivo:</b> sem um formato único, cada endpoint retornaria estruturas diferentes,
+forçando o frontend a tratar casos especiais. Um envelope padronizado permite que o frontend escreva
+<b>um único interceptor HTTP</b> (Axios/Fetch) capaz de processar qualquer resposta, sucesso ou erro,
+de forma previsível — reduzindo bugs de integração e acelerando o desenvolvimento.</div>
+<table>
+<tr><th>Tipo</th><th>Formato</th></tr>
+<tr><td>Sucesso (item único)</td><td><span class="code">{ "success": true, "data": {...}, "meta": { "timestamp": "..." } }</span></td></tr>
+<tr><td>Sucesso (lista paginada)</td><td><span class="code">{ "success": true, "data": [...], "meta": { "page", "limit", "total", "totalPages", "timestamp" } }</span></td></tr>
+<tr><td>Erro</td><td><span class="code">{ "success": false, "error": { "code", "message", "details" }, "meta": { "timestamp", "path" } }</span></td></tr>
+</table>
+<div class="how"><b>Como foi implementado:</b> um <span class="code">ResponseInterceptor</span> global
+envolve toda resposta de sucesso (detectando automaticamente quando o retorno é um
+<span class="code">PaginatedResult</span> para preencher <span class="code">meta</span>); um
+<span class="code">AllExceptionsFilter</span> global captura qualquer exceção (validação, regra de
+negócio via <span class="code">AppException</span>, ou erro interno) e a serializa no mesmo formato de
+erro, sempre com um <span class="code">error.code</span> estável (ex.: <span class="code">VEHICLE_NOT_FOUND</span>,
+<span class="code">VALIDATION_ERROR</span>) — o frontend deve usar esse <i>code</i> para lógica
+condicional (ex.: redirecionar em <span class="code">UNAUTHORIZED</span>) e a <i>message</i>
+(em pt-BR) para exibir ao usuário.</div>
+
+<h2>4. Autenticação, sessão e RBAC — motivo e uso</h2>
+<div class="why"><b>Motivo:</b> a plataforma tem três perfis com visões e permissões muito diferentes
+(ADMIN vê tudo da loja; SELLER só seus próprios clientes/comissões; CUSTOMER só seus próprios dados).
+Um esquema de autenticação robusto evita vazamento de dados sensíveis (comissão de outro vendedor,
+faturamento da loja, dados pessoais de outro cliente) e cumpre LGPD.</div>
+<div class="how"><b>Como funciona / como o frontend integra:</b></div>
+<ul>
+  <li><b>Login:</b> <span class="code">POST /auth/login</span> retorna <span class="code">accessToken</span>
+  (curta duração, ~15 min) + <span class="code">refreshToken</span> (revogável, armazenado no banco como hash
+  SHA-256 — nunca em texto puro). O frontend envia o access token em
+  <span class="code">Authorization: Bearer &lt;token&gt;</span> em toda chamada autenticada.</li>
+  <li><b>Renovação automática:</b> ao receber <span class="code">401 UNAUTHORIZED</span>, o frontend chama
+  <span class="code">POST /auth/refresh</span>; o backend faz <i>rotação</i> do refresh token (o antigo é
+  invalidado e um novo é emitido) — isso limita o dano caso um token vaze.</li>
+  <li><b>RBAC:</b> cada endpoint é protegido por <span class="code">@Roles('ADMIN' | 'SELLER' | 'CUSTOMER')</span>
+  + um guard global (<span class="code">JwtAuthGuard</span> → <span class="code">RolesGuard</span>); rotas
+  abertas usam <span class="code">@Public()</span>. O backend nunca confia no "papel" enviado pelo cliente —
+  ele é resolvido a partir do token assinado no servidor.</li>
+  <li><b>Bloqueio de login (lockout):</b> após várias tentativas inválidas, a conta é bloqueada
+  temporariamente (<span class="code">ACCOUNT_LOCKED</span>) — o frontend deve exibir mensagem
+  amigável e sugerir "esqueci minha senha".</li>
+  <li><b>Sessão no frontend:</b> guarde o access token em memória (estado da aplicação) e o refresh token
+  com cuidado (idealmente um BFF com cookie httpOnly); nunca exponha tokens em logs ou URLs.</li>
+</ul>
+<table>
+<tr><th>Papel</th><th>O que enxerga / pode fazer</th></tr>
+<tr><td>ADMIN</td><td>Acesso total: cadastro de loja, usuários/funcionários, todos os veículos, estoque,
+peças, manutenção, documentos, vendas, comissões de todos os vendedores, DRE consolidada e por veículo,
+dashboards globais, relatórios, auditoria, configurações.</td></tr>
+<tr><td>SELLER</td><td>Veículos e clientes que atende, suas próprias reservas/vendas/comissões e seu
+próprio dashboard — <b>nunca</b> vê comissão de outro vendedor nem faturamento consolidado da loja.</td></tr>
+<tr><td>CUSTOMER</td><td>Autoatendimento: seu cadastro/endereços, suas compras, documentos relacionados a
+si, favoritos, histórico de visualização, preferências de marketing e solicitações LGPD — nunca dados de
+outro cliente.</td></tr>
+</table>
+
+<div class="section-break"></div>
+<h2>5. Módulos de domínio — o que cada um faz, por que existe e como o frontend o usa</h2>
+
+<h3>5.1 Auth · Users · Employees · Customers</h3>
+<p><b>O que é:</b> autenticação (login/registro/refresh/recuperação de senha), gestão de papéis e
+permissões (RBAC), CRUD de funcionários (vendedores/equipe interna) e de clientes (com endereços).</p>
+<div class="why"><b>Por quê:</b> é a base de identidade de todo o sistema — sem ela nenhuma regra de
+negócio (quem pode ver o quê, quem é "o vendedor" de uma venda, quem é "o cliente" de um documento)
+seria possível.</div>
+<div class="how"><b>Uso no frontend:</b> telas de login/cadastro/recuperação de senha; área "minha
+conta" do cliente (<span class="code">/customers/me</span>); telas administrativas de gestão de equipe
+e clientes (apenas ADMIN).</div>
+
+<h3>5.2 VehicleSpecs · Vehicles · Stock</h3>
+<p><b>O que é:</b> ficha técnica de veículos com <b>preenchimento automático desacoplado</b> (padrão
+<span class="code">VehicleSpecsProvider</span> — uma interface que pode ser implementada por qualquer
+fonte de dados externa, hoje atendida por um provedor "mock" com catálogo realista de marcas/modelos
+brasileiros, cacheado em Redis); cadastro de veículos com <b>separação rígida entre campos públicos e
+internos</b>; e máquina de estados de estoque (<span class="code">DRAFT → AVAILABLE → RESERVED → SOLD →
+ARCHIVED</span>, entre outros) com transições validadas.</p>
+<div class="why"><b>Por quê:</b> (1) digitar a ficha técnica de cada veículo manualmente é lento e
+sujeito a erro — o preenchimento automático acelera o cadastro; (2) o catálogo público <b>não pode</b>
+revelar preço de compra, margem, notas internas, placa/chassi/Renavam (dados sensíveis e estratégicos)
+— por isso existe um <i>serializer</i> dedicado que filtra esses campos antes de qualquer resposta
+pública; (3) sem uma máquina de estados, seria possível (por erro de UI ou requisição manipulada)
+"vender" um carro arquivado ou reservar um já vendido — a validação de transições impede isso na
+origem.</div>
+<div class="how"><b>Uso no frontend:</b>
+<ul>
+  <li>Catálogo público: <span class="code">GET /public/vehicles</span>,
+  <span class="code">/public/vehicles/:slug</span>, <span class="code">/public/vehicles/featured</span>,
+  <span class="code">/public/filters</span> — sempre retornam o objeto <i>público</i> (sem campos internos).</li>
+  <li>Área interna (ADMIN/SELLER): <span class="code">GET/POST/PATCH /vehicles</span> retornam o objeto
+  completo; <span class="code">POST /vehicles/:id/apply-specs</span> aciona o preenchimento automático;
+  <span class="code">POST /vehicles/:id/status</span> muda o estágio no funil de estoque (o backend
+  recusa transições inválidas com <span class="code">VEHICLE_INVALID_STATUS_TRANSITION</span>).</li>
+</ul></div>
+
+<h3>5.3 Parts (Peças) · Suppliers (Fornecedores) · Maintenance (Manutenção)</h3>
+<p><b>O que é:</b> controle de estoque de peças (entradas/saídas/ajustes com custo médio), cadastro de
+fornecedores e ordens de manutenção/revisão de veículos que consomem peças e geram custo de mão de obra.</p>
+<div class="why"><b>Por quê:</b> o custo de "deixar um carro pronto para venda" é parte central da
+lucratividade (DRE). Sem rastrear consumo de peças e mão de obra por veículo, seria impossível calcular
+o lucro real de cada venda. O alerta de estoque mínimo evita que a oficina pare por falta de peça.</div>
+<div class="how"><b>Uso no frontend:</b> telas internas de gestão de estoque de peças
+(<span class="code">/parts</span>), fornecedores (<span class="code">/suppliers</span>) e ordens de
+manutenção (<span class="code">/maintenance</span>) — ao concluir uma manutenção, o backend lança
+automaticamente os custos na DRE do veículo e dispara eventos em tempo real
+(<span class="code">maintenance.completed</span>, <span class="code">part.low_stock</span>).</div>
+
+<h3>5.4 Documents (Documentos)</h3>
+<p><b>O que é:</b> tipos de documento e checklists <b>configuráveis</b> (o admin define quais documentos
+são obrigatórios para cada fluxo), upload com versionamento, validação e <b>download restrito por
+permissão</b>.</p>
+<div class="why"><b>Por quê:</b> processos de venda de veículo exigem documentação variável (CRLV,
+laudo cautelar, contrato, comprovantes) que muda conforme o tipo de negociação — torná-la configurável
+evita alterar código sempre que o processo da loja mudar. O download restrito impede que um cliente
+baixe documento de outro, ou que dados internos vazem.</div>
+<div class="how"><b>Uso no frontend:</b> upload via <span class="code">multipart/form-data</span>
+(<span class="code">POST /documents/upload</span>); exibição de checklist de pendências por veículo/venda
+(<span class="code">GET /documents/checklist-status/...</span>); download sempre via endpoint autenticado
+que valida se o usuário tem direito ao arquivo.</div>
+
+<h3>5.5 Commercial (Aquisição · Reserva · Venda) · Financial/DRE · Commissions</h3>
+<p><b>O que é:</b> o núcleo comercial — registrar a <i>aquisição</i> de um veículo (entrada no
+estoque), <i>reservar</i> para um cliente, <i>concluir a venda</i>; em paralelo, o motor de
+<b>DRE (Demonstrativo de Resultado)</b> por veículo e consolidado, e o motor de <b>comissões</b> com
+regras flexíveis.</p>
+<div class="why"><b>Por quê:</b> esse é o "coração financeiro" do negócio — é aqui que a loja descobre
+se está tendo lucro. Concentrar essas regras em serviços dedicados (em vez de espalhá-las pelo
+frontend) garante que o cálculo seja <i>sempre</i> o mesmo, auditável e não manipulável pelo cliente.</div>
+<div class="how"><b>Como o cálculo funciona (motivo de cada peça):</b>
+<ul>
+  <li><b>DRE</b> agrega lançamentos financeiros (<span class="code">FinancialEntry</span>: custo de
+  aquisição, peças, mão de obra, despesas) e o total de comissões geradas para aquele veículo, calculando
+  <span class="code">totalInvested, totalExpenses, totalRevenue, grossProfit, netProfit, margin,
+  daysInStock, costPerDay</span>. Comissões nunca são contadas em duplicidade: ficam exclusivamente na
+  tabela <span class="code">Commission</span> e são somadas separadamente no resultado líquido — o
+  serviço de DRE explicitamente ignora qualquer <span class="code">FinancialEntry</span> de categoria
+  "Comissão" ao somar despesas.</li>
+  <li><b>Comissões</b> suportam 4 modelos configuráveis — <span class="code">PERCENT_SALE</span>
+  (percentual sobre o valor da venda), <span class="code">PERCENT_PROFIT</span> (percentual sobre o
+  lucro), <span class="code">FIXED</span> (valor fixo) e <span class="code">PROGRESSIVE</span>
+  (faixas/tiers escalonados) — porque lojas reais usam políticas de remuneração diferentes e essa
+  política pode mudar com o tempo sem exigir nova versão do backend.</li>
+  <li><b>Fluxo de venda</b> (<span class="code">sales.service.ts</span>) ao concluir uma venda
+  (<span class="code">PATCH /sales/:id/status → COMPLETED</span>) automaticamente: muda o status do
+  veículo para <span class="code">SOLD</span>, gera o lançamento de receita na DRE, calcula e cria a(s)
+  comissão(ões) do(s) vendedor(es) envolvidos, e dispara eventos em tempo real
+  (<span class="code">sale.completed</span>, <span class="code">commission.generated</span>,
+  <span class="code">dashboard.updated</span>).</li>
+</ul></div>
+<div class="how"><b>Uso no frontend:</b> funil comercial (<span class="code">/acquisitions</span>,
+<span class="code">/reservations</span>, <span class="code">/sales</span>); telas de DRE
+(<span class="code">/dre/vehicle/:id</span> para análise individual, <span class="code">/dre/consolidated</span>
+para visão gerencial — apenas ADMIN); extrato de comissões pessoal do vendedor
+(<span class="code">/commissions/me</span>, sempre filtrado pelo próprio <span class="code">employeeId</span>).</div>
+
+<h3>5.6 Leads · WhatsApp ("Falar com especialista")</h3>
+<p><b>O que é:</b> captação de leads (potenciais compradores) com distribuição automática entre
+vendedores (<i>round-robin</i> ou <i>least-busy</i>) e geração do link de WhatsApp pré-preenchido.</p>
+<div class="why"><b>Por quê:</b> o WhatsApp é o canal de conversão dominante no mercado automotivo
+brasileiro. Automatizar a distribuição evita que um único vendedor fique sobrecarregado (ou que leads
+"se percam" sem dono) e dá rastreabilidade ao funil de vendas (de onde veio o lead, quem atendeu, taxa
+de conversão).</div>
+<div class="how"><b>Uso no frontend:</b> botão "Falar com especialista" na página do veículo chama
+<span class="code">POST /public/leads/specialist-contact</span> (endpoint público, sem login) e o
+frontend abre a <span class="code">whatsappUrl</span> retornada
+(<span class="code">window.open(url, '_blank')</span>) — formato <span class="code">https://wa.me/&lt;telefone&gt;?text=...</span>
+já com mensagem pré-preenchida contendo dados do veículo.</div>
+
+<h3>5.7 Store (Loja/Mapa)</h3>
+<p><b>O que é:</b> dados de localização da loja (endereço, coordenadas, horário, redes sociais) com
+geração de URLs do Google Maps/"como chegar".</p>
+<div class="why"><b>Por quê:</b> centralizar essa informação no backend permite trocá-la (endereço,
+telefone, horário) sem precisar de novo deploy do frontend — útil para lojas físicas que mudam de
+endereço ou ajustam horário sazonalmente.</div>
+<div class="how"><b>Uso no frontend:</b> <span class="code">GET /public/store/location</span> alimenta
+o mapa (coordenadas) e o botão "Como chegar" (<span class="code">directionsUrl</span>).</div>
+
+<h3>5.8 Privacy / LGPD (Consentimento, Rastreamento, Favoritos)</h3>
+<p><b>O que é:</b> registro de consentimento de cookies por categoria (essencial, analytics, marketing,
+localização), rastreamento de visualizações e localização <i>somente com consentimento</i>, favoritos,
+preferências de marketing, e fluxo de solicitações LGPD (exportação e exclusão de dados).</p>
+<div class="why"><b>Por quê:</b> a Lei Geral de Proteção de Dados (LGPD) exige consentimento explícito
+antes de coletar dados pessoais/comportamentais, e garante ao titular o direito de exportar ou apagar
+seus dados. Construir isso desde o início evita retrabalho jurídico e técnico mais tarde, e protege a
+empresa de sanções.</div>
+<div class="how"><b>Como foi implementado (detalhe técnico relevante para o frontend):</b> o IP do
+visitante <b>nunca</b> é armazenado em texto puro — é transformado em hash SHA-256 antes de qualquer
+persistência (<span class="code">ClientInfoParam</span>). O envio de localização
+(<span class="code">POST /tracking/location</span>) só é aceito se já existir consentimento de
+categoria <span class="code">LOCATION</span> registrado — o frontend deve sempre checar/solicitar o
+consentimento <i>antes</i> de chamar esse endpoint, e exibir o banner de cookies usando
+<span class="code">POST /consents</span> com a lista de categorias.</div>
+
+<h3>5.9 Notifications (Notificações)</h3>
+<p><b>O que é:</b> notificações in-app (lidas/não lidas, por usuário) e fila de e-mails transacionais
+(boas-vindas, redefinição de senha, confirmação de venda, alertas de estoque etc.).</p>
+<div class="why"><b>Por quê:</b> manter usuários informados de eventos relevantes (nova reserva, venda
+concluída, comissão aprovada, documento pendente) aumenta engajamento e reduz follow-up manual. A fila
+assíncrona evita que o envio de e-mail trave a resposta da API.</div>
+<div class="how"><b>Uso no frontend:</b> sino de notificações consultando
+<span class="code">GET /notifications</span> + <span class="code">PATCH /notifications/:id/read</span>;
+pode (e deve) ser combinado com o evento realtime <span class="code">notification.created</span> para
+atualização instantânea sem precisar recarregar a página.</div>
+
+<h3>5.10 Dashboard · Realtime (WebSocket/SSE)</h3>
+<p><b>O que é:</b> indicadores gerenciais por papel (admin vê a loja inteira; vendedor vê seu próprio
+desempenho) atualizados <b>em tempo real</b> via WebSocket (Socket.IO) ou Server-Sent Events, com
+fan-out via Redis pub/sub (permitindo múltiplas instâncias da API).</p>
+<div class="why"><b>Por quê:</b> dashboards "estáticos" (que exigem F5) dão sensação de atraso e geram
+mais chamadas HTTP desnecessárias (polling). Tempo real torna a operação mais ágil — ex.: o vendedor vê
+instantaneamente quando recebe um novo lead, o admin vê o funil de vendas se mover ao vivo.</div>
+<div class="how"><b>Uso no frontend:</b>
+<pre>import { io } from 'socket.io-client';
+const socket = io('http://localhost:3000/realtime', { auth: { token: accessToken } });
+socket.on('dashboard.updated', () => refetchDashboard());
+socket.on('lead.assigned', (msg) => toast('Novo lead!', msg.data));</pre>
+O backend distribui eventos por "salas" (role:ADMIN, role:SELLER, user:&lt;id&gt;, seller:&lt;id&gt;), de
+forma que cada cliente só recebe o que tem permissão de ver. A lista completa dos 17 eventos está em
+<span class="code">docs/REALTIME_EVENTS.md</span> (ex.: <span class="code">vehicle.status_changed</span>,
+<span class="code">sale.completed</span>, <span class="code">commission.generated</span>,
+<span class="code">part.low_stock</span>, <span class="code">lead.assigned</span>,
+<span class="code">dashboard.updated</span>, <span class="code">notification.created</span>).</div>
+
+<h3>5.11 Public (Catálogo público) · Reports · Audit · Jobs</h3>
+<table>
+<tr><th>Módulo</th><th>O que faz</th><th>Por que existe / como usar</th></tr>
+<tr><td><b>Public</b></td><td>Conjunto de endpoints sem autenticação que expõem <i>apenas</i> o que é
+seguro mostrar publicamente (catálogo, filtros, localização, contato).</td>
+<td>Permite construir páginas públicas (SEO-friendly, sem exigir login) com a garantia de que nenhum
+campo interno será exposto — toda a filtragem acontece no backend, nunca depende do frontend "esconder"
+campos.</td></tr>
+<tr><td><b>Reports</b></td><td>18 tipos de relatórios (estoque, vendas, comissões, DRE, manutenção,
+leads etc.) exportáveis em CSV ou JSON.</td>
+<td>Gestores precisam analisar dados fora da plataforma (Excel, BI). Exportação server-side garante
+que os dados batem com o que está no sistema e respeita as mesmas regras de permissão (um vendedor não
+consegue exportar relatório de outro).</td></tr>
+<tr><td><b>Audit</b></td><td>Registro de quem fez o quê, quando e por quê (criação/edição/exclusão de
+registros sensíveis).</td>
+<td>Rastreabilidade e responsabilização — essencial em qualquer sistema que lida com dinheiro,
+documentos e dados pessoais; também é exigência indireta da LGPD (comprovar o que foi feito com os
+dados de um titular).</td></tr>
+<tr><td><b>Jobs (cron)</b></td><td>8 tarefas agendadas: expiração de reservas, alerta de estoque baixo,
+recálculo de dashboards, processamento da fila de e-mails, limpeza de tokens expirados, anonimização
+de dados (LGPD), verificação de revisões/documentos a vencer etc.</td>
+<td>Mantêm o sistema "saudável" sem intervenção manual — ex.: uma reserva não paga expira sozinha e
+libera o veículo de volta ao estoque; dados de titulares que pediram exclusão são anonimizados
+automaticamente conforme a política definida.</td></tr>
+</table>
+
+<div class="section-break"></div>
+<h2>6. Controles de segurança — motivo de cada um e como ele afeta o frontend</h2>
+<table>
+<tr><th>Controle</th><th>Motivo da criação</th><th>Como afeta/é usado pelo frontend</th></tr>
+<tr><td>Hash de senha (bcrypt)</td><td>Senhas nunca devem ser recuperáveis em texto puro — mesmo que o
+banco vaze, o atacante não obtém a senha original.</td><td>Transparente; o frontend só envia a senha em
+texto puro <i>uma vez</i>, via HTTPS, no login/cadastro.</td></tr>
+<tr><td>JWT curto + refresh token rotativo e revogável</td><td>Reduz a janela de uso de um token
+roubado; permite "deslogar remotamente" revogando o refresh token no banco.</td><td>Implementar o
+interceptor de renovação automática (ver seção 4); tratar <span class="code">INVALID_REFRESH_TOKEN</span>
+como "sessão expirada, faça login novamente".</td></tr>
+<tr><td>Guards globais de autenticação e papel (RBAC)</td><td>Garantir, no servidor, que ninguém acesse
+dado que não deveria — o frontend pode (e deve) também esconder botões/menus por papel, mas a
+<i>autoridade</i> de fato é sempre do backend.</td><td>Tratar <span class="code">FORBIDDEN</span> (403)
+como "ação não permitida para este perfil" e ajustar a UI condicionalmente ao <span class="code">role</span>
+retornado em <span class="code">/auth/me</span>.</td></tr>
+<tr><td>Rate limiting (Throttler)</td><td>Protege contra abuso/força bruta e picos que poderiam
+derrubar o serviço.</td><td>Tratar <span class="code">429 / RATE_LIMITED</span> com mensagem de "muitas
+tentativas, aguarde alguns instantes".</td></tr>
+<tr><td>Helmet + CORS configurado</td><td>Cabeçalhos HTTP de segurança (XSS, sniffing, clickjacking) e
+controle de quais origens podem chamar a API.</td><td>O frontend deve rodar a partir de uma origem
+liberada em <span class="code">CORS_ORIGIN</span> (configurável via .env).</td></tr>
+<tr><td>Validação de DTOs (class-validator) + <span class="code">whitelist: true</span></td><td>Garante
+que apenas os campos esperados sejam aceitos — previne <i>mass assignment</i> (cliente tentando setar
+campos como <span class="code">role</span> ou <span class="code">customerId</span> de outra pessoa).
+Durante a revisão final, encontramos e corrigimos exatamente esse risco no endpoint
+<span class="code">PUT /public/marketing/preferences</span>.</td><td>Erros de validação chegam como
+<span class="code">VALIDATION_ERROR</span> com lista de campos em <span class="code">error.details</span>
+— o frontend deve mapear isso para mensagens de campo no formulário.</td></tr>
+<tr><td>Limites e validação de upload (tamanho/MIME/nome seguro)</td><td>Evita ataques via upload
+(arquivos enormes, executáveis disfarçados, nomes maliciosos que sobrescrevem outros arquivos).</td>
+<td>Tratar <span class="code">UPLOAD_TOO_LARGE</span> e <span class="code">UPLOAD_INVALID_TYPE</span> com
+orientação clara (tamanho/Tipo aceitos) antes mesmo de enviar, validando no cliente como primeira
+camada.</td></tr>
+<tr><td>Download de documentos restrito por permissão</td><td>Impede que, sabendo a URL/ID, alguém
+baixe um documento de outro cliente ou um arquivo interno.</td><td>Sempre buscar o link de download via
+endpoint autenticado (nunca montar URLs "na mão").</td></tr>
+<tr><td>Bloqueio de login (lockout) por tentativas</td><td>Mitiga ataques de força bruta a senhas.</td>
+<td>Exibir mensagem amigável e oferecer fluxo de recuperação de senha quando receber
+<span class="code">ACCOUNT_LOCKED</span>.</td></tr>
+<tr><td>Auditoria (audit trail)</td><td>Rastreabilidade de ações sensíveis para investigação e
+conformidade.</td><td>Tela de auditoria (apenas ADMIN) consumindo <span class="code">/audit</span>.</td></tr>
+<tr><td>Hash de IP + consentimento prévio (LGPD)</td><td>Minimizar dados pessoais armazenados e cumprir
+a lei.</td><td>Implementar banner de cookies <i>antes</i> de qualquer rastreamento; nunca chamar
+endpoints de tracking sem que o usuário tenha consentido.</td></tr>
+</table>
+
+<h2>7. Infraestrutura compartilhada — o que existe "por baixo dos panos" e por quê</h2>
+<table>
+<tr><th>Peça</th><th>Função</th><th>Motivo</th></tr>
+<tr><td>Prisma + PostgreSQL</td><td>ORM tipado e banco relacional.</td><td>Integridade referencial entre
+~40 entidades interligadas; migrações versionadas garantem que todo ambiente (dev, homologação,
+produção) tenha o mesmo esquema.</td></tr>
+<tr><td>Redis</td><td>Cache (ex.: ficha técnica de veículos) e backbone de pub/sub para eventos
+realtime entre instâncias.</td><td>Reduz latência/repetição de chamadas a provedores externos e permite
+escalar a API horizontalmente sem perder eventos em tempo real.</td></tr>
+<tr><td>Storage abstrato (local → S3-ready)</td><td>Interface única <span class="code">StorageProvider</span>
+com implementação local funcional hoje e <i>scaffold</i> para Amazon S3.</td><td>Permite trocar "onde os
+arquivos ficam" (disco local em desenvolvimento, S3/bucket em produção) sem alterar nenhuma linha dos
+módulos de negócio — só trocar a configuração.</td></tr>
+<tr><td>Mailer (Nodemailer)</td><td>Envio de e-mails via fila, com templates centralizados e driver
+configurável (console em dev / SMTP em produção; testável via MailHog no Docker Compose).</td>
+<td>Centraliza textos/identidade visual dos e-mails e evita travar requisições aguardando o envio.</td></tr>
+<tr><td>VehicleSpecsProvider</td><td>Interface desacoplada para "de onde vêm" os dados técnicos do
+veículo.</td><td>Hoje atendida por um provedor mock (catálogo offline com dados reais de marcas/modelos),
+com fallback gracioso (se falhar, retorna vazio em vez de quebrar o cadastro) — amanhã pode ser trocado
+por uma API paga (ex.: FIPE/Vehicle data) <i>sem mudar o restante do sistema</i>.</td></tr>
+</table>
+
+<h2>8. Qualidade — testes, lint e build</h2>
+<ul>
+  <li><b>Build TypeScript:</b> compila sem erros (<span class="code">npm run build</span>).</li>
+  <li><b>Lint (ESLint + Prettier):</b> 0 erros, 0 warnings.</li>
+  <li><b>Testes unitários:</b> 7 suítes / 25 testes, <b>todos passando</b>, cobrindo validadores
+  brasileiros (CPF/CNPJ/CEP), exportação CSV, serialização pública de veículo (garantindo que campos
+  internos nunca vazam), máquina de estados de estoque, distribuição de leads, cálculo de comissões e o
+  provedor mock de fichas técnicas.</li>
+  <li><b>Testes e2e:</b> escritos e prontos (<span class="code">test/app.e2e-spec.ts</span>), a serem
+  executados com a infraestrutura (Docker) ativa.</li>
+</ul>
+
+<h2>9. Documentação entregue (no repositório)</h2>
+<table>
+<tr><th>Arquivo</th><th>Conteúdo</th></tr>
+<tr><td><span class="code">docs/PROJECT_SETUP.md</span></td><td>Como instalar/rodar o projeto.</td></tr>
+<tr><td><span class="code">docs/ENVIRONMENT_VARIABLES.md</span></td><td>Todas as variáveis de ambiente
+explicadas.</td></tr>
+<tr><td><span class="code">docs/AUTHENTICATION.md</span></td><td>Fluxo completo de autenticação/refresh.</td></tr>
+<tr><td><span class="code">docs/ROLES_AND_PERMISSIONS.md</span></td><td>Matriz de permissões por papel
+e endpoint.</td></tr>
+<tr><td><span class="code">docs/REALTIME_EVENTS.md</span></td><td>Os 17 eventos em tempo real, payloads
+e quem os recebe.</td></tr>
+<tr><td><span class="code">docs/API_ENDPOINTS.md</span></td><td>Lista completa de endpoints por módulo.</td></tr>
+<tr><td><span class="code">docs/DATABASE_MODEL.md</span></td><td>Modelo de dados (entidades, relações,
+enums).</td></tr>
+<tr><td><span class="code">docs/BUSINESS_RULES.md</span></td><td>Regras de negócio (transições de
+estoque, cálculo de DRE/comissões, fluxos comerciais).</td></tr>
+<tr><td><span class="code">docs/EXAMPLE_REQUESTS.md</span></td><td>Exemplos reais de requisições e
+respostas.</td></tr>
+<tr><td><span class="code">docs/FRONTEND_INTEGRATION.md</span></td><td><b>Guia dedicado ao time de
+frontend</b> — autenticação, upload, paginação, filtros, erros, eventos realtime e fluxos completos com
+exemplos Axios/Fetch.</td></tr>
+<tr><td><span class="code">docs/postman_collection.json</span></td><td>Coleção Postman pronta, com
+captura automática de token ao logar.</td></tr>
+</table>
+
+<h2>10. Como executar o backend (para desenvolvimento integrado com o frontend)</h2>
+<pre>
+git clone https://github.com/knopfgit/site-coser.git
+cd site-coser
+cp .env.example .env
+docker compose up -d        # PostgreSQL + Redis + MailHog
+npm install
+npx prisma migrate dev
+npx prisma db seed
+npm run start:dev           # API em http://localhost:3000/api
+</pre>
+<table>
+<tr><th>Recurso</th><th>URL</th></tr>
+<tr><td>API</td><td><span class="code">http://localhost:3000/api</span></td></tr>
+<tr><td>Swagger (documentação interativa/viva)</td><td><span class="code">http://localhost:3000/docs</span></td></tr>
+<tr><td>WebSocket realtime</td><td><span class="code">ws://localhost:3000/realtime</span></td></tr>
+<tr><td>SSE realtime</td><td><span class="code">GET /api/realtime/stream</span></td></tr>
+<tr><td>MailHog (e-mails de teste)</td><td><span class="code">http://localhost:8025</span></td></tr>
+</table>
+<h4>Credenciais de desenvolvimento (seed)</h4>
+<table>
+<tr><th>Papel</th><th>E-mail</th><th>Senha</th></tr>
+<tr><td>ADMIN</td><td>admin@autodealer.local</td><td>Admin@123</td></tr>
+<tr><td>SELLER</td><td>carlos@autodealer.local / ana@autodealer.local</td><td>Seller@123</td></tr>
+<tr><td>CUSTOMER</td><td>maria@cliente.com / joao@cliente.com</td><td>Customer@123</td></tr>
+</table>
+
+<h2>11. Pontos preparados para integração futura</h2>
+<ul>
+  <li><b>Armazenamento em nuvem:</b> trocar <span class="code">STORAGE_DRIVER=local</span> por
+  <span class="code">s3</span> e instalar <span class="code">@aws-sdk/client-s3</span> — nenhuma mudança
+  de código de negócio é necessária.</li>
+  <li><b>Ficha técnica via API paga (ex.: FIPE):</b> implementar a interface
+  <span class="code">VehicleSpecsProvider</span> e registrá-la no módulo — o resto do sistema continua
+  funcionando sem alterações.</li>
+  <li><b>Geração de PDF de relatórios:</b> os serviços de relatório já retornam os dados prontos
+  ("datasets"); falta apenas plugar uma camada de renderização (ex.: Puppeteer/PDFKit).</li>
+  <li><b>Escalabilidade horizontal:</b> eventos em tempo real já trafegam via Redis pub/sub — basta
+  subir mais instâncias da API atrás de um load balancer.</li>
+</ul>
+
+<h2>12. Limitações conhecidas</h2>
+<ul>
+  <li>O preenchimento automático de ficha técnica usa um <b>provedor mock offline</b> (catálogo com
+  dados ilustrativos de marcas/modelos reais) — não depende de nenhuma API paga para funcionar, mas
+  pode ser substituído por uma fonte oficial quando desejado.</li>
+  <li>O provedor de armazenamento em S3 está implementado como <i>scaffold</i> (estrutura pronta,
+  porém requer a instalação da SDK da AWS e configuração de credenciais para uso real).</li>
+  <li>Testes e2e completos exigem a infraestrutura Docker ativa (Postgres/Redis) — não puderam ser
+  executados no ambiente isolado de geração do código, mas estão escritos e prontos para rodar
+  localmente.</li>
+</ul>
+
+<p class="small" style="margin-top:30px; border-top:1px solid #ccd; padding-top:8px;">
+Documento gerado como parte do handoff técnico do backend "Auto Dealer API" para o time de frontend.
+Para detalhes operacionais (payloads exatos, exemplos de requisição/resposta, lista completa de
+endpoints e eventos), consulte sempre os arquivos em <span class="code">docs/</span> no repositório —
+eles são a fonte de verdade viva, e o Swagger (<span class="code">/docs</span>) reflete o estado real
+da API a cada execução.
+</p>
+
+</body>
+</html>
