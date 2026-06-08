@@ -46,7 +46,7 @@ export type NavGroup = {
 
 export const publicNav: NavItem[] = [
   { to: '/', label: 'Vitrine', icon: Home },
-  { to: '/catalogo', label: 'Catálogo', icon: Car },
+  { to: '/catalogo', label: 'Estoque', icon: Car },
   { to: '/onde-estamos', label: 'Onde estamos', icon: MapPin },
 ];
 
@@ -65,7 +65,7 @@ export const customerNav: NavGroup[] = [
     label: 'Loja',
     items: [
       { to: '/', label: 'Vitrine', icon: Home },
-      { to: '/catalogo', label: 'Catálogo', icon: Car },
+      { to: '/catalogo', label: 'Estoque', icon: Car },
       { to: '/onde-estamos', label: 'Onde estamos', icon: MapPin },
     ],
   },

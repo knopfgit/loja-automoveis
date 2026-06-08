@@ -18,6 +18,24 @@ export type VehicleFilters = {
   sortOrder?: string;
 };
 
+export type PublicFilters = {
+  brands?: string[];
+  brand?: string[];
+  models?: string[];
+  model?: string[];
+  fuels?: string[];
+  fuel?: string[];
+  transmissions?: string[];
+  transmission?: string[];
+  colors?: string[];
+  categories?: string[];
+  years?: number[];
+  priceRange?: {
+    min: number;
+    max: number;
+  };
+};
+
 export function getFeaturedVehicles() {
   return unwrap<Vehicle[]>(api.get('/public/vehicles/featured'));
 }
@@ -27,7 +45,7 @@ export function getPublicVehicles(params: VehicleFilters) {
 }
 
 export function getPublicFilters() {
-  return unwrap<Record<string, string[]>>(api.get('/public/filters'));
+  return unwrap<PublicFilters>(api.get('/public/filters'));
 }
 
 export function getVehicleBySlug(slug: string) {

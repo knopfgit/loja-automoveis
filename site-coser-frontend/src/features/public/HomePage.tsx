@@ -1,51 +1,133 @@
 import { useQuery } from '@tanstack/react-query';
 import type { CSSProperties } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ErrorState, LoadingState, EmptyState } from '../../components/State';
+import { BrandLogo } from '../../components/BrandLogo';
 import { VehicleCard } from '../../components/VehicleCard';
-import { getFeaturedVehicles } from './api';
+import { VehicleSpecPanel } from '../../components/VehicleSpecPanel';
+import type { Vehicle } from '../../types';
+import { getFeaturedVehicles, getPublicFilters } from './api';
+import { defaultBrandNames, getBrandProfile } from './vehicleTheme';
 
-const brands = [
-  { name: 'BMW', slug: 'bmw', color: '#1266d8', neonA: '#1266d8', neonB: '#67e8f9', neonC: '#6d5dfc' },
-  { name: 'Porsche', slug: 'porsche', color: '#b00000', neonA: '#b00000', neonB: '#ff4d5e', neonC: '#d4af37' },
-  { name: 'Mercedes-Benz', slug: 'mercedes', color: '#7c8694', neonA: '#7c8694', neonB: '#d7dde7', neonC: '#9fe8ff' },
-  { name: 'Audi', slug: 'audi', color: '#b8141f', neonA: '#b8141f', neonB: '#ff6b75', neonC: '#9ca3af' },
-  { name: 'Ferrari', slug: 'ferrari', color: '#dd1f2d', neonA: '#dd1f2d', neonB: '#ffd43b', neonC: '#22c55e' },
-  { name: 'Lamborghini', slug: 'lamborghini', color: '#d7a80d', neonA: '#d7a80d', neonB: '#fff45f', neonC: '#a3e635' },
+const previewVehicles: Vehicle[] = [
+  {
+    id: 'preview-porsche-panamera',
+    brand: 'Porsche',
+    model: 'Panamera',
+    version: 'Turbo Sport Turismo',
+    price: 920000,
+    color: 'Preto',
+    modelYear: 2024,
+    manufactureYear: 2023,
+    mileage: 4100,
+    fuel: 'Gasolina',
+    transmission: 'PDK 8 marchas',
+    category: 'Sport Turismo',
+    doors: 4,
+    seats: 4,
+    description: 'Configuracao de vitrine com acabamento esportivo, baixa quilometragem e pacote premium de conforto.',
+    media: [{ url: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1100&q=82', isMain: true }],
+  },
+  {
+    id: 'preview-mclaren-720s',
+    brand: 'McLaren',
+    model: '720S',
+    version: 'Performance Coupe',
+    price: 1490000,
+    color: 'Prata',
+    modelYear: 2023,
+    manufactureYear: 2022,
+    mileage: 2800,
+    fuel: 'Gasolina',
+    transmission: 'Automatizado 7 marchas',
+    category: 'Superesportivo',
+    doors: 2,
+    seats: 2,
+    description: 'Coupe leve e preciso, selecionado para exposicao pelo conjunto visual, performance e estado de conservacao.',
+    media: [{ url: 'https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=1100&q=82', isMain: true }],
+  },
+  {
+    id: 'preview-lamborghini-huracan',
+    brand: 'Lamborghini',
+    model: 'Huracan',
+    version: 'EVO Coupe',
+    price: 1320000,
+    color: 'Amarelo',
+    modelYear: 2022,
+    manufactureYear: 2021,
+    mileage: 6200,
+    fuel: 'Gasolina',
+    transmission: 'Automatizado 7 marchas',
+    category: 'Superesportivo',
+    doors: 2,
+    seats: 2,
+    description: 'Perfil de colecionador com presenca visual forte, tonalidade aquarela e configuracao esportiva.',
+    media: [{ url: 'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?auto=format&fit=crop&w=1100&q=82', isMain: true }],
+  },
+  {
+    id: 'preview-bugatti-chiron',
+    brand: 'Bugatti',
+    model: 'Chiron',
+    version: 'Sport Verde Edition',
+    price: 1180000,
+    color: 'Verde',
+    modelYear: 2024,
+    manufactureYear: 2023,
+    mileage: 1900,
+    fuel: 'Gasolina',
+    transmission: 'Automatica 8 marchas',
+    category: 'Hypercar',
+    doors: 2,
+    seats: 2,
+    description: 'Hypercar de baixa quilometragem com tonalidade verde aplicada ao card e ao painel de especificacoes.',
+    media: [{ url: 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=1100&q=82', isMain: true }],
+  }
 ];
-
-function logoFor(slug: string, color: string) {
-  return `https://cdn.simpleicons.org/${slug}/${color.replace('#', '')}`;
-}
 
 export function HomePage() {
   const featured = useQuery({ queryKey: ['featuredVehicles'], queryFn: getFeaturedVehicles });
+  const filterOptions = useQuery({ queryKey: ['publicFilters'], queryFn: getPublicFilters });
   const [activeBrand, setActiveBrand] = useState(0);
-  const brand = brands[activeBrand];
+  const [activeLandingVehicle, setActiveLandingVehicle] = useState<Vehicle | null>(null);
+  const brandNames = filterOptions.data?.brands?.length ? filterOptions.data.brands : defaultBrandNames;
+  const brands = useMemo(() => brandNames.map(getBrandProfile), [brandNames]);
+  const brand = brands[activeBrand] ?? brands[0];
 
   useEffect(() => {
-    const interval = window.setInterval(() => setActiveBrand((value) => (value + 1) % brands.length), 2800);
+    const interval = window.setInterval(() => setActiveBrand((value) => (value + 1) % Math.max(brands.length, 1)), 3200);
     return () => window.clearInterval(interval);
-  }, []);
+  }, [brands.length]);
+
+  useEffect(() => {
+    if (activeBrand >= brands.length) setActiveBrand(0);
+  }, [activeBrand, brands.length]);
 
   useEffect(() => {
     const root = document.documentElement;
+    if (!brand) return;
     root.style.setProperty('--brand', brand.color);
     root.style.setProperty('--neon-a', brand.neonA);
     root.style.setProperty('--neon-b', brand.neonB);
     root.style.setProperty('--neon-c', brand.neonC);
+    root.style.setProperty('--wash-a', brand.washA);
+    root.style.setProperty('--wash-b', brand.washB);
+    root.style.setProperty('--wash-c', brand.washC);
   }, [brand]);
+
+  const landingVehicles = featured.data?.length ? featured.data : previewVehicles;
+  const activeLandingHref = activeLandingVehicle && !activeLandingVehicle.id.startsWith('preview-')
+    ? `/veiculos/${activeLandingVehicle.slug ?? activeLandingVehicle.id}`
+    : undefined;
 
   return (
     <div className="page">
       <section className="hero glass" aria-label="Apresentacao">
         <div className="hero-copy">
           <span className="eyebrow"><span className="pip" /> Concessionaria multimarca</span>
-          <h1>As marcas que voce admira, <em>num so lugar.</em></h1>
-          <p>Curadoria premium de esportivos, SUVs e sedas com atendimento direto, catalogo conectado ao estoque real e operacao interna em tempo real.</p>
+          <h1>Estoque premium com <em>presenca visual.</em></h1>
+          <p>Uma vitrine focada nos veiculos mais bonitos do estoque, com marcas selecionadas, fotos em primeiro plano e uma experiencia liquid glass inspirada em aquarela.</p>
           <div className="hero-cta">
-            <Link className="button button-primary" to="/catalogo">Ver catalogo</Link>
+            <Link className="button button-primary" to="/catalogo">Ver estoque</Link>
             <Link className="button button-ghost" to="/onde-estamos">Falar com consultor</Link>
           </div>
           <dl className="hero-stats">
@@ -55,10 +137,16 @@ export function HomePage() {
           </dl>
         </div>
         <div className="hero-stage" aria-label="Marcas em destaque">
-          <div className="ghost-word">COSER</div>
-          <Link className="orb" to={`/catalogo?brand=${encodeURIComponent(brand.name)}`} aria-label={`Ver modelos ${brand.name}`}>
-            <img src={logoFor(brand.slug, brand.color)} alt={brand.name} />
-            <span className="logo-fallback">{brand.name}</span>
+          <div className="ghost-word">ESTOQUE</div>
+          <Link
+            className="brand-showcase-shape"
+            to={`/catalogo?brand=${encodeURIComponent(brand.name)}`}
+            aria-label={`Ver modelos ${brand.name}`}
+            style={{ '--c': brand.color, '--wa': brand.washA, '--wb': brand.washB, '--wc': brand.washC } as CSSProperties}
+          >
+            <BrandLogo name={brand.name} className="brand-showcase-logo" />
+            <span>{brand.name}</span>
+            <small>Ver modelos no estoque</small>
           </Link>
           <div className="stage-caption">
             <span className="dot" />
@@ -70,33 +158,47 @@ export function HomePage() {
       <section className="marcas glass" aria-label="Nossas marcas">
         <div className="strip-head">
           <div>
-            <p className="label">Catalogo</p>
-            <h2>Seis marcas. Uma curadoria.</h2>
+            <p className="label">Estoque</p>
+            <h2>Escolha a marca e veja os modelos disponiveis.</h2>
           </div>
-          <Link className="see" to="/catalogo">Ver todas</Link>
+          <Link className="see" to="/catalogo">Ver estoque completo</Link>
         </div>
-        <div className="strip-grid">
+        <div className="brand-list-grid">
           {brands.map((item) => (
-            <Link className="marca-chip" key={item.name} to={`/catalogo?brand=${encodeURIComponent(item.name)}`} style={{ '--c': item.color } as CSSProperties} data-name={item.name}>
-              <img src={logoFor(item.slug, item.color)} alt={item.name} loading="lazy" />
-              <span className="cf">{item.name}</span>
+            <Link className="brand-card" key={item.name} to={`/catalogo?brand=${encodeURIComponent(item.name)}`} style={{ '--c': item.color, '--wa': item.washA, '--wb': item.washB, '--wc': item.washC } as CSSProperties}>
+              <BrandLogo name={item.name} className="brand-card-mark" />
+              <span className="brand-card-copy">
+                <strong>{item.name}</strong>
+                <small>Ver veiculos</small>
+              </span>
             </Link>
           ))}
         </div>
       </section>
-      <section className="section">
+      <section id="veiculos-em-destaque" className="section landing-vehicle-section" aria-label="Listagem de veiculos em destaque">
         <div className="section-header">
           <div>
-            <span className="eyebrow">Vitrine</span>
-            <h2>Veiculos em destaque</h2>
+            <span className="eyebrow">Selecao premium</span>
+            <h2>Veiculos com presenca de vitrine</h2>
+            <p>Uma listagem limpa e visual, com cards liquid glass que valorizam foto, tonalidade, versao e preco.</p>
           </div>
           <Link to="/catalogo" className="button button-ghost">Todos os veiculos</Link>
         </div>
-        {featured.isLoading && <LoadingState />}
-        {featured.isError && <ErrorState error={featured.error} />}
-        {featured.data?.length === 0 && <EmptyState />}
-        <div className="vehicle-grid">
-          {featured.data?.map((vehicle) => <VehicleCard key={vehicle.id} vehicle={vehicle} />)}
+        <div className={`vehicle-focus-layout ${activeLandingVehicle ? 'is-open' : ''}`}>
+          {activeLandingVehicle && <button className="vehicle-focus-scrim" type="button" aria-label="Fechar especificacoes" onClick={() => setActiveLandingVehicle(null)} />}
+          <div className="vehicle-grid landing-vehicle-grid">
+            {landingVehicles.map((vehicle) => (
+              <VehicleCard
+                key={vehicle.id}
+                vehicle={vehicle}
+                variant="landing"
+                active={activeLandingVehicle?.id === vehicle.id}
+                dimmed={Boolean(activeLandingVehicle && activeLandingVehicle.id !== vehicle.id)}
+                onOpen={(nextVehicle) => setActiveLandingVehicle((current) => (current?.id === nextVehicle.id ? null : nextVehicle))}
+              />
+            ))}
+          </div>
+          {activeLandingVehicle && <VehicleSpecPanel vehicle={activeLandingVehicle} href={activeLandingHref} onClose={() => setActiveLandingVehicle(null)} />}
         </div>
       </section>
     </div>

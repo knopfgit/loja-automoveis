@@ -5,6 +5,7 @@ import { MessageCircle } from 'lucide-react';
 import { ErrorState, LoadingState } from '../../components/State';
 import { formatCurrency, imageUrl } from '../../utils/format';
 import { getVehicleBySlug, specialistContact, trackVehicleView } from './api';
+import { themeVarsForVehicle } from './vehicleTheme';
 
 export function VehicleDetailPage() {
   const { slug = '' } = useParams();
@@ -27,7 +28,7 @@ export function VehicleDetailPage() {
 
   return (
     <div className="page">
-      <section className="detail-layout">
+      <section className="detail-layout vehicle-detail-watercolor" style={themeVarsForVehicle(vehicle.data)}>
         <div className="gallery">
           {mainImage ? <img src={imageUrl(mainImage)} alt={`${vehicle.data.brand} ${vehicle.data.model}`} /> : <div className="gallery-empty">Sem foto</div>}
           <div className="thumb-row">
