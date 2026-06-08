@@ -30,9 +30,10 @@ yarn-error.log*
 /uploads
 !/storage/.gitkeep
 
-# IDE
+# IDE / tooling
 .idea
 .vscode
+.claude
 *.suo
 *.ntvs*
 *.njsproj

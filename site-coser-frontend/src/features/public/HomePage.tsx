@@ -55,7 +55,7 @@ export function HomePage() {
           </dl>
         </div>
         <div className="hero-stage" aria-label="Marcas em destaque">
-          <div className="ghost-word">Vertex</div>
+          <div className="ghost-word">COSER</div>
           <Link className="orb" to={`/catalogo?brand=${encodeURIComponent(brand.name)}`} aria-label={`Ver modelos ${brand.name}`}>
             <img src={logoFor(brand.slug, brand.color)} alt={brand.name} />
             <span className="logo-fallback">{brand.name}</span>

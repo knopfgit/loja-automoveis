@@ -21,9 +21,10 @@ vite.config.d.ts
 *.log
 npm-debug.log*
 
-# Editor
+# Editor / tooling
 .vscode/*
 !.vscode/extensions.json
+.claude
 .idea
 *.suo
 *.ntvs*
