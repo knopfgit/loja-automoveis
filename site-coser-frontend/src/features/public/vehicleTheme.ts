@@ -16,7 +16,7 @@ export type BrandProfile = {
 const profiles: BrandProfile[] = [
   { name: 'BMW', slug: 'bmw', color: '#1266d8', neonA: '#1266d8', neonB: '#67e8f9', neonC: '#6d5dfc', washA: '#d8ecff', washB: '#76b9ff', washC: '#574cff' },
   { name: 'Porsche', slug: 'porsche', color: '#a70f16', neonA: '#a70f16', neonB: '#ff6b75', neonC: '#d7b75b', washA: '#ffe5dc', washB: '#ff8b7a', washC: '#d7b75b' },
-  { name: 'Mercedes-Benz', slug: 'mercedesbenz', color: '#6f7885', neonA: '#6f7885', neonB: '#d7dde7', neonC: '#9fe8ff', washA: '#eef4f8', washB: '#aeb8c4', washC: '#d8f5ff' },
+  { name: 'Mercedes-Benz', slug: 'mercedes', color: '#6f7885', neonA: '#6f7885', neonB: '#d7dde7', neonC: '#9fe8ff', washA: '#eef4f8', washB: '#aeb8c4', washC: '#d8f5ff' },
   { name: 'Audi', slug: 'audi', color: '#b8141f', neonA: '#b8141f', neonB: '#ff6b75', neonC: '#9ca3af', washA: '#ffe1e3', washB: '#ff7f88', washC: '#ced4dd' },
   { name: 'Ferrari', slug: 'ferrari', color: '#dd1f2d', neonA: '#dd1f2d', neonB: '#ffd43b', neonC: '#22c55e', washA: '#ffdedf', washB: '#ff7b6e', washC: '#ffe777' },
   { name: 'Lamborghini', slug: 'lamborghini', color: '#c89b07', neonA: '#c89b07', neonB: '#fff45f', neonC: '#a3e635', washA: '#fff4bc', washB: '#f3cf54', washC: '#d8ff8d' },
@@ -28,6 +28,8 @@ const profiles: BrandProfile[] = [
   { name: 'Hyundai', slug: 'hyundai', color: '#0b5fa5', neonA: '#0b5fa5', neonB: '#8cd7ff', neonC: '#5b7cfa', washA: '#dff4ff', washB: '#7dc7ff', washC: '#7b82ff' },
   { name: 'Jeep', slug: 'jeep', color: '#49633e', neonA: '#49633e', neonB: '#b6d99d', neonC: '#e6d0a8', washA: '#edf6df', washB: '#abc891', washC: '#ead8b9' },
   { name: 'Ford', slug: 'ford', color: '#1351a3', neonA: '#1351a3', neonB: '#8fd5ff', neonC: '#5f75f5', washA: '#e0f2ff', washB: '#8ac8ff', washC: '#8590ff' },
+  { name: 'Tesla', slug: 'tesla', color: '#e82127', neonA: '#e82127', neonB: '#ff8a8f', neonC: '#9ca3af', washA: '#ffe0e2', washB: '#ff8088', washC: '#d7dde6' },
+  { name: 'BYD', slug: 'byd', color: '#1a4f9c', neonA: '#1a4f9c', neonB: '#7db4ff', neonC: '#56d0c9', washA: '#e2efff', washB: '#83bcff', washC: '#8fe6df' },
 ];
 
 export const defaultBrandNames = ['BMW', 'Porsche', 'Mercedes-Benz', 'Audi', 'Ferrari', 'Lamborghini'];
@@ -100,4 +102,91 @@ export function themeVarsForVehicle(vehicle?: Pick<Vehicle, 'brand' | 'color'>):
     '--vehicle-wash-b': profile.washB,
     '--vehicle-wash-c': profile.washC,
   } as CSSProperties;
+}
+
+// Tema neutro "branco vidro" usado quando nenhuma marca esta selecionada nem sob o mouse.
+export const neutralProfile: BrandProfile = {
+  name: 'Estoque',
+  slug: 'simpleicons',
+  color: '#9fb2c9',
+  neonA: '#cdd9e9',
+  neonB: '#ffffff',
+  neonC: '#dde6f2',
+  washA: '#ffffff',
+  washB: '#eef3f9',
+  washC: '#e3ecf6',
+};
+
+function parseHex(hex: string): [number, number, number] {
+  const clean = hex.replace('#', '');
+  const full = clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean;
+  const num = Number.parseInt(full, 16);
+  return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+}
+
+function toHex([r, g, b]: number[]): string {
+  return '#' + [r, g, b].map((value) => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, '0')).join('');
+}
+
+/** Media dos canais RGB de varias cores, para fundir marcas numa unica paleta. */
+export function mixHex(colors: string[]): string {
+  if (colors.length === 0) return neutralProfile.color;
+  const sum = colors.reduce<[number, number, number]>(
+    (acc, color) => {
+      const [r, g, b] = parseHex(color);
+      return [acc[0] + r, acc[1] + g, acc[2] + b];
+    },
+    [0, 0, 0],
+  );
+  return toHex([sum[0] / colors.length, sum[1] / colors.length, sum[2] / colors.length]);
+}
+
+/**
+ * Combina varias marcas numa unica paleta: a cor base e a media de todas, e as
+ * marcas individuais sao preservadas nos acentos (neon/wash) para criar a "juncao"
+ * de cores num gradiente de duas (ou mais) tonalidades.
+ */
+export function combinedBrandProfile(names: string[]): BrandProfile {
+  const list = names.map(getBrandProfile);
+  if (list.length === 0) return neutralProfile;
+  if (list.length === 1) return list[0];
+  const second = list[1];
+  return {
+    name: list.map((profile) => profile.name).join(' + '),
+    slug: list[0].slug,
+    color: mixHex(list.map((profile) => profile.color)),
+    neonA: list[0].color,
+    neonB: second.color,
+    neonC: mixHex(list.map((profile) => profile.neonC)),
+    washA: mixHex(list.map((profile) => profile.washA)),
+    washB: list[0].washB,
+    washC: second.washB,
+  };
+}
+
+const GLOBAL_THEME_VARS = ['--brand', '--neon-a', '--neon-b', '--neon-c', '--wash-a', '--wash-b', '--wash-c'] as const;
+
+export function globalThemeVars(profile: BrandProfile): Record<string, string> {
+  return {
+    '--brand': profile.color,
+    '--neon-a': profile.neonA,
+    '--neon-b': profile.neonB,
+    '--neon-c': profile.neonC,
+    '--wash-a': profile.washA,
+    '--wash-b': profile.washB,
+    '--wash-c': profile.washC,
+  };
+}
+
+/** Pinta o site inteiro com a paleta da marca (ou combinacao), definindo as vars no <html>. */
+export function applyGlobalTheme(profile: BrandProfile): void {
+  const root = document.documentElement;
+  const vars = globalThemeVars(profile);
+  for (const [key, value] of Object.entries(vars)) root.style.setProperty(key, value);
+}
+
+/** Remove o tema inline para que as paginas internas voltem ao padrao do :root. */
+export function clearGlobalTheme(): void {
+  const root = document.documentElement;
+  for (const key of GLOBAL_THEME_VARS) root.style.removeProperty(key);
 }

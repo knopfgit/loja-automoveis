@@ -1,62 +1,125 @@
 import { Search } from 'lucide-react';
-import type { CSSProperties } from 'react';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { BrandLogo } from '../../components/BrandLogo';
-import { ErrorState, LoadingState, EmptyState } from '../../components/State';
+import { BrandSelector } from '../../components/BrandSelector';
+import { EmptyState } from '../../components/State';
 import { VehicleCard } from '../../components/VehicleCard';
 import { VehicleSpecPanel } from '../../components/VehicleSpecPanel';
 import type { Vehicle } from '../../types';
-import { getPublicFilters, getPublicVehicles, type VehicleFilters } from './api';
-import { defaultBrandNames, getBrandProfile } from './vehicleTheme';
+import { getPublicVehicles } from './api';
+import { demoVehicles } from './demoVehicles';
+import {
+  applyGlobalTheme,
+  clearGlobalTheme,
+  combinedBrandProfile,
+  defaultBrandNames,
+  getBrandProfile,
+  neutralProfile,
+} from './vehicleTheme';
+
+function normalize(value?: string) {
+  return (value ?? '').normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+}
+
+function parseBrands(value: string | null): string[] {
+  if (!value) return [];
+  return value.split(',').map((item) => item.trim()).filter(Boolean);
+}
+
+type FormFilters = { model: string; priceMin: string; priceMax: string; fuel: string; transmission: string };
+
+const emptyForm: FormFilters = { model: '', priceMin: '', priceMax: '', fuel: '', transmission: '' };
 
 export function CatalogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const brandParam = searchParams.get('brand') || undefined;
-  const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState<VehicleFilters>({ brand: brandParam, page: 1, limit: 12, sortBy: 'announcedPrice', sortOrder: 'asc' });
+  const appliedBrands = useMemo(() => parseBrands(searchParams.get('brand')), [searchParams]);
+  const [selected, setSelected] = useState<string[]>(appliedBrands);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [formFilters, setFormFilters] = useState<FormFilters>(emptyForm);
   const [activeVehicle, setActiveVehicle] = useState<Vehicle | null>(null);
-  const vehicles = useQuery({ queryKey: ['publicVehicles', filters], queryFn: () => getPublicVehicles(filters) });
-  const filterOptions = useQuery({ queryKey: ['publicFilters'], queryFn: getPublicFilters });
-  const stockBrands = filterOptions.data?.brands ?? filterOptions.data?.brand ?? [];
-  const brands = stockBrands.length
-    ? stockBrands
-    : [...new Set([brandParam, ...defaultBrandNames].filter((item): item is string => Boolean(item)))];
 
-  useEffect(() => {
-    setFilters((current) => {
-      if ((current.brand || undefined) === brandParam) return current;
-      return { ...current, brand: brandParam, page: 1 };
+  // Busca na API; se nao responder (backend fora do ar), usa os carros de demonstracao.
+  const vehiclesQuery = useQuery({
+    queryKey: ['publicVehicles'],
+    queryFn: () => getPublicVehicles({ page: 1, limit: 60 }),
+    retry: false,
+  });
+  const source = vehiclesQuery.data?.items?.length ? vehiclesQuery.data.items : demoVehicles;
+
+  const brands = useMemo(() => [...new Set([...defaultBrandNames, ...source.map((vehicle) => vehicle.brand)])], [source]);
+  const fuels = useMemo(() => [...new Set(source.map((vehicle) => vehicle.fuel).filter(Boolean) as string[])], [source]);
+  const transmissions = useMemo(() => [...new Set(source.map((vehicle) => vehicle.transmission).filter(Boolean) as string[])], [source]);
+
+  const filtered = useMemo(() => {
+    const brandSet = new Set(appliedBrands.map((brand) => normalize(brand)));
+    const model = normalize(formFilters.model).trim();
+    const min = formFilters.priceMin ? Number(formFilters.priceMin) : undefined;
+    const max = formFilters.priceMax ? Number(formFilters.priceMax) : undefined;
+    const fuel = normalize(formFilters.fuel);
+    const transmission = normalize(formFilters.transmission);
+    return source.filter((vehicle) => {
+      if (brandSet.size && !brandSet.has(normalize(vehicle.brand))) return false;
+      if (model && !normalize(`${vehicle.model} ${vehicle.version ?? ''}`).includes(model)) return false;
+      if (min != null && !Number.isNaN(min) && (vehicle.price ?? 0) < min) return false;
+      if (max != null && !Number.isNaN(max) && (vehicle.price ?? 0) > max) return false;
+      if (fuel && normalize(vehicle.fuel) !== fuel) return false;
+      if (transmission && normalize(vehicle.transmission) !== transmission) return false;
+      return true;
     });
-    setPage(1);
-  }, [brandParam]);
+  }, [source, appliedBrands, formFilters]);
+
+  // Mantem a selecao local em sincronia com a marca aplicada na URL (vinda da Home, por ex.).
+  useEffect(() => {
+    setSelected(appliedBrands);
+  }, [appliedBrands]);
 
   useEffect(() => {
     setActiveVehicle(null);
-  }, [filters.brand, filters.model, filters.priceMin, filters.priceMax, filters.fuel, filters.transmission, page]);
+  }, [appliedBrands, formFilters]);
+
+  // Tema: hover pinta na hora; senao a combinacao das marcas selecionadas; senao neutro.
+  const activeProfile = useMemo(() => {
+    if (hovered) return getBrandProfile(hovered);
+    if (selected.length) return combinedBrandProfile(selected);
+    return neutralProfile;
+  }, [hovered, selected]);
+
+  useEffect(() => {
+    applyGlobalTheme(activeProfile);
+  }, [activeProfile]);
+
+  useEffect(() => () => clearGlobalTheme(), []);
+
+  function toggle(brand: string) {
+    setSelected((current) => (current.includes(brand) ? current.filter((item) => item !== brand) : [...current, brand]));
+  }
+
+  function goToFilter() {
+    if (selected.length) setSearchParams({ brand: selected.join(',') });
+    else setSearchParams({});
+  }
+
+  function showAll() {
+    setSelected([]);
+    setSearchParams({});
+  }
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const next = Object.fromEntries([...form.entries()].filter(([, value]) => value !== '')) as VehicleFilters;
-    setPage(1);
-    setFilters({ ...next, page: 1, limit: 12, sortBy: 'announcedPrice', sortOrder: 'asc' });
-    if (next.brand) setSearchParams({ brand: String(next.brand) });
-    else setSearchParams({});
+    setFormFilters({
+      model: String(form.get('model') ?? ''),
+      priceMin: String(form.get('priceMin') ?? ''),
+      priceMax: String(form.get('priceMax') ?? ''),
+      fuel: String(form.get('fuel') ?? ''),
+      transmission: String(form.get('transmission') ?? ''),
+    });
   }
 
-  function selectBrand(brand?: string) {
-    setPage(1);
-    setFilters((current) => ({ ...current, brand, page: 1 }));
-    if (brand) setSearchParams({ brand });
-    else setSearchParams({});
-  }
-
-  function changePage(nextPage: number) {
-    setPage(nextPage);
-    setFilters((current) => ({ ...current, page: nextPage }));
-  }
+  const heading = appliedBrands.length
+    ? `Estoque ${appliedBrands.join(' + ')}`
+    : 'Estoque completo';
 
   return (
     <div className="page">
@@ -64,71 +127,45 @@ export function CatalogPage() {
         <div className="section-header">
           <div>
             <span className="eyebrow">Estoque</span>
-            <h1>Encontre seu proximo veiculo</h1>
-            <p>Filtre por marca ou use a busca fina para ver apenas os modelos disponiveis para anuncio.</p>
+            <h1>{heading}</h1>
+            <p>{filtered.length} veiculo{filtered.length === 1 ? '' : 's'} {appliedBrands.length ? 'na(s) marca(s) escolhida(s)' : 'disponiveis'}. Selecione marcas para colorir e filtrar.</p>
           </div>
         </div>
-        <div className="stock-brand-panel" aria-label="Filtrar por marca">
-          <div className="stock-brand-head">
-            <div>
-              <strong>Marcas no estoque</strong>
-              <span>{filters.brand ? `Mostrando ${filters.brand}` : 'Escolha uma marca para entrar direto nos modelos'}</span>
-            </div>
-            {filters.brand && (
-              <button className="button button-ghost" type="button" onClick={() => selectBrand(undefined)}>
-                Limpar marca
-              </button>
-            )}
-          </div>
-          <div className="stock-brand-grid">
-            {brands.map((name) => {
-              const profile = getBrandProfile(name);
-              const active = filters.brand === name;
-              return (
-                <button
-                  className={`stock-brand ${active ? 'active' : ''}`}
-                  key={name}
-                  type="button"
-                  onClick={() => selectBrand(name)}
-                  style={{ '--c': profile.color, '--wa': profile.washA, '--wb': profile.washB, '--wc': profile.washC } as CSSProperties}
-                >
-                  <BrandLogo name={name} className="stock-brand-logo" />
-                  <span>{name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <BrandSelector
+          brands={brands}
+          selected={selected}
+          onToggle={toggle}
+          onHover={setHovered}
+          onFilter={goToFilter}
+          onShowAll={showAll}
+          title="Filtre por marca"
+          subtitle="Clique para selecionar (pode mais de uma). O estoque fica na cor da marca; juntando marcas, as cores se fundem."
+        />
         <form className="filter-bar" onSubmit={submit}>
-          <input key={`brand-${filters.brand ?? ''}`} name="brand" placeholder="Marca" list="brands" defaultValue={filters.brand ?? ''} />
-          <input name="model" placeholder="Modelo" defaultValue={filters.model ?? ''} />
-          <input name="priceMin" placeholder="Preco minimo" inputMode="numeric" defaultValue={filters.priceMin ?? ''} />
-          <input name="priceMax" placeholder="Preco maximo" inputMode="numeric" defaultValue={filters.priceMax ?? ''} />
-          <select name="fuel" defaultValue="">
+          <input name="model" placeholder="Modelo ou versao" defaultValue={formFilters.model} />
+          <input name="priceMin" placeholder="Preco minimo" inputMode="numeric" defaultValue={formFilters.priceMin} />
+          <input name="priceMax" placeholder="Preco maximo" inputMode="numeric" defaultValue={formFilters.priceMax} />
+          <select name="fuel" defaultValue={formFilters.fuel}>
             <option value="">Combustivel</option>
-            {(filterOptions.data?.fuels ?? filterOptions.data?.fuel ?? []).map((item) => <option key={item}>{item}</option>)}
+            {fuels.map((item) => <option key={item}>{item}</option>)}
           </select>
-          <select name="transmission" defaultValue="">
+          <select name="transmission" defaultValue={formFilters.transmission}>
             <option value="">Cambio</option>
-            {(filterOptions.data?.transmissions ?? filterOptions.data?.transmission ?? []).map((item) => <option key={item}>{item}</option>)}
+            {transmissions.map((item) => <option key={item}>{item}</option>)}
           </select>
           <button className="button button-dark" type="submit"><Search size={17} /> Filtrar</button>
-          <datalist id="brands">
-            {brands.map((item) => <option key={item} value={item} />)}
-          </datalist>
         </form>
       </section>
       <section className="section">
-        {vehicles.isLoading && <LoadingState />}
-        {vehicles.isError && <ErrorState error={vehicles.error} />}
-        {vehicles.data?.items.length === 0 && <EmptyState />}
+        {filtered.length === 0 && <EmptyState />}
         <div className={`vehicle-focus-layout ${activeVehicle ? 'is-open' : ''}`}>
           {activeVehicle && <button className="vehicle-focus-scrim" type="button" aria-label="Fechar especificacoes" onClick={() => setActiveVehicle(null)} />}
-          <div className="vehicle-grid stock-grid">
-            {vehicles.data?.items.map((vehicle) => (
+          <div className="vehicle-grid stock-showcase-grid">
+            {filtered.map((vehicle) => (
               <VehicleCard
                 key={vehicle.id}
                 vehicle={vehicle}
+                variant="landing"
                 active={activeVehicle?.id === vehicle.id}
                 dimmed={Boolean(activeVehicle && activeVehicle.id !== vehicle.id)}
                 onOpen={(nextVehicle) => setActiveVehicle((current) => (current?.id === nextVehicle.id ? null : nextVehicle))}
@@ -143,13 +180,6 @@ export function CatalogPage() {
             />
           )}
         </div>
-        {vehicles.data && vehicles.data.meta.totalPages && vehicles.data.meta.totalPages > 1 && (
-          <div className="pagination">
-            <button className="button button-ghost" disabled={page <= 1} onClick={() => changePage(page - 1)}>Anterior</button>
-            <span>Pagina {page} de {vehicles.data.meta.totalPages}</span>
-            <button className="button button-ghost" disabled={page >= vehicles.data.meta.totalPages} onClick={() => changePage(page + 1)}>Proxima</button>
-          </div>
-        )}
       </section>
     </div>
   );

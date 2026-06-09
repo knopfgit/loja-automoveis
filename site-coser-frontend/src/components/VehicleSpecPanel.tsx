@@ -1,4 +1,4 @@
-import { Calendar, Car, Fuel, Gauge, Hash, Palette, Settings2, Users, X } from 'lucide-react';
+import { Calendar, Car, Fuel, Gauge, Hash, Palette, Settings2, Users, DoorOpen, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Vehicle } from '../types';
 import { formatCurrency, imageUrl } from '../utils/format';
@@ -18,7 +18,8 @@ function display(value: unknown, fallback = 'Nao informado') {
 }
 
 export function VehicleSpecPanel({ vehicle, href, onClose }: VehicleSpecPanelProps) {
-  const mainImage = vehicle.media?.find((item) => item.isMain)?.url ?? vehicle.media?.[0]?.url;
+  const images = vehicle.media?.length ? vehicle.media : [];
+  const mainImage = images.find((item) => item.isMain)?.url ?? images[0]?.url;
   const specItems = [
     { label: 'Ano modelo', value: vehicle.modelYear, icon: Calendar },
     { label: 'Fabricacao', value: vehicle.manufactureYear, icon: Calendar },
@@ -28,6 +29,7 @@ export function VehicleSpecPanel({ vehicle, href, onClose }: VehicleSpecPanelPro
     { label: 'Cor', value: vehicle.color, icon: Palette },
     { label: 'Categoria', value: vehicle.category, icon: Car },
     { label: 'Lugares', value: vehicle.seats, icon: Users },
+    { label: 'Portas', value: vehicle.doors, icon: DoorOpen },
   ];
   const extraSpecs = Object.entries(vehicle.spec ?? {}).slice(0, 4);
 
@@ -40,48 +42,66 @@ export function VehicleSpecPanel({ vehicle, href, onClose }: VehicleSpecPanelPro
       aria-label={`Especificacoes de ${vehicle.brand} ${vehicle.model}`}
       onClick={onClose}
     >
-      <button className="vehicle-spec-close" type="button" aria-label="Fechar especificacoes" onClick={onClose}>
-        <X size={18} />
-      </button>
-      <div className="vehicle-spec-head">
-        <span className="eyebrow"><span className="pip" /> {vehicle.publicCode ?? 'Selecao premium'}</span>
-        <h3>{vehicle.brand} {vehicle.model}</h3>
-        {vehicle.version && <p>{vehicle.version}</p>}
-        <strong className="price big">{formatCurrency(vehicle.price)}</strong>
-      </div>
-      <div className="vehicle-spec-media" aria-hidden="true">
-        <span className="vehicle-spec-orb" />
-        {mainImage ? (
-          <img src={imageUrl(mainImage)} alt="" />
-        ) : (
-          <span className="vehicle-placeholder">{vehicle.brand?.slice(0, 1)}{vehicle.model?.slice(0, 1)}</span>
-        )}
-      </div>
-      <dl className="vehicle-spec-list">
-        {specItems.map(({ label, value, icon: Icon }) => (
-          <div key={label}>
-            <dt><Icon size={15} /> {label}</dt>
-            <dd>{display(value)}</dd>
+      <div className="vehicle-spec-sheet" onClick={(event) => event.stopPropagation()}>
+        <button className="vehicle-spec-close" type="button" aria-label="Fechar especificacoes" onClick={onClose}>
+          <X size={18} />
+        </button>
+
+        <div className="vehicle-spec-visual">
+          <div className="vehicle-spec-media">
+            <span className="vehicle-spec-orb" />
+            {mainImage ? (
+              <img src={imageUrl(mainImage)} alt={`${vehicle.brand} ${vehicle.model}`} />
+            ) : (
+              <span className="vehicle-placeholder">{vehicle.brand?.slice(0, 1)}{vehicle.model?.slice(0, 1)}</span>
+            )}
           </div>
-        ))}
-        {vehicle.publicCode && (
-          <div>
-            <dt><Hash size={15} /> Codigo</dt>
-            <dd>{vehicle.publicCode}</dd>
-          </div>
-        )}
-      </dl>
-      {(vehicle.description || extraSpecs.length > 0) && (
-        <div className="vehicle-spec-notes">
-          {vehicle.description && <p>{vehicle.description}</p>}
-          {extraSpecs.map(([key, value]) => (
-            <span key={key}><strong>{key}</strong>{display(value)}</span>
-          ))}
+          {images.length > 1 && (
+            <div className="vehicle-spec-thumbs">
+              {images.slice(0, 5).map((media) => (
+                <img key={media.id ?? media.url} src={imageUrl(media.url)} alt="" />
+              ))}
+            </div>
+          )}
         </div>
-      )}
-      <div className="vehicle-spec-actions" onClick={(event) => event.stopPropagation()}>
-        {href && <Link className="button button-dark" to={href}>Abrir ficha completa</Link>}
-        <button className="button button-ghost" type="button" onClick={onClose}>Voltar a listagem</button>
+
+        <div className="vehicle-spec-info">
+          <div className="vehicle-spec-head">
+            <span className="eyebrow"><span className="pip" /> {vehicle.publicCode ?? 'Selecao premium'}</span>
+            <h3>{vehicle.brand} {vehicle.model}</h3>
+            {vehicle.version && <p>{vehicle.version}</p>}
+            <strong className="price big">{formatCurrency(vehicle.price)}</strong>
+          </div>
+
+          <dl className="vehicle-spec-list">
+            {specItems.map(({ label, value, icon: Icon }) => (
+              <div key={label}>
+                <dt><Icon size={15} /> {label}</dt>
+                <dd>{display(value)}</dd>
+              </div>
+            ))}
+            {vehicle.publicCode && (
+              <div>
+                <dt><Hash size={15} /> Codigo</dt>
+                <dd>{vehicle.publicCode}</dd>
+              </div>
+            )}
+          </dl>
+
+          {(vehicle.description || extraSpecs.length > 0) && (
+            <div className="vehicle-spec-notes">
+              {vehicle.description && <p>{vehicle.description}</p>}
+              {extraSpecs.map(([key, value]) => (
+                <span key={key}><strong>{key}</strong>{display(value)}</span>
+              ))}
+            </div>
+          )}
+
+          <div className="vehicle-spec-actions">
+            {href && <Link className="button button-dark" to={href}>Abrir ficha completa</Link>}
+            <button className="button button-ghost" type="button" onClick={onClose}>Voltar a listagem</button>
+          </div>
+        </div>
       </div>
     </aside>
   );

@@ -2971,3 +2971,1104 @@ tbody tr:hover {
     align-items: stretch;
   }
 }
+
+/* Estoque: vitrine de cards grandes com foto priorizada (formato showroom) */
+.stock-showcase-grid {
+  grid-template-columns: repeat(auto-fill, minmax(clamp(300px, 30vw, 400px), 1fr));
+  gap: clamp(20px, 2.4vw, 32px);
+}
+
+.stock-showcase-grid .vehicle-image-landing {
+  aspect-ratio: 1.5 / 1;
+}
+
+@media (max-width: 640px) {
+  .stock-showcase-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+/* Botao "Ver em 3D" na ficha do veiculo */
+.view-3d-button {
+  width: 100%;
+  justify-content: center;
+}
+
+.view-3d-button svg {
+  color: color-mix(in srgb, var(--brand) 80%, var(--ink));
+}
+
+/* Visor 3D (model-viewer) em overlay */
+.model-viewer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 4vw, 48px);
+  background:
+    radial-gradient(60% 60% at 50% 18%, color-mix(in srgb, var(--brand) 16%, transparent), transparent 72%),
+    rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  animation: model3dFade 200ms ease both;
+}
+
+.model-viewer-shell {
+  position: relative;
+  width: min(960px, 100%);
+  height: min(70vh, 640px);
+  border-radius: 28px;
+  overflow: hidden;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.32) 48%, rgba(255, 255, 255, 0.44)),
+    radial-gradient(82% 58% at 84% 8%, color-mix(in srgb, var(--brand) 14%, transparent), transparent 72%);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 40px 90px rgba(15, 23, 42, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  animation: model3dRise 240ms ease both;
+}
+
+.model-viewer-shell model-viewer {
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  --poster-color: transparent;
+}
+
+.model-viewer-close {
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+}
+
+.model-viewer-note {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  font-size: 0.76rem;
+  font-weight: 760;
+  white-space: nowrap;
+}
+
+@keyframes model3dFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes model3dRise {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .model-viewer-overlay,
+  .model-viewer-shell {
+    animation: none;
+  }
+}
+
+/* === Pintura do site por marca: transicao suave ao trocar a paleta === */
+@property --brand { syntax: '<color>'; inherits: true; initial-value: #1266d8; }
+@property --neon-a { syntax: '<color>'; inherits: true; initial-value: #1266d8; }
+@property --neon-b { syntax: '<color>'; inherits: true; initial-value: #67e8f9; }
+@property --neon-c { syntax: '<color>'; inherits: true; initial-value: #6d5dfc; }
+@property --wash-a { syntax: '<color>'; inherits: true; initial-value: #d8ecff; }
+@property --wash-b { syntax: '<color>'; inherits: true; initial-value: #76b9ff; }
+@property --wash-c { syntax: '<color>'; inherits: true; initial-value: #574cff; }
+
+html {
+  transition:
+    --brand 520ms ease, --neon-a 520ms ease, --neon-b 520ms ease, --neon-c 520ms ease,
+    --wash-a 520ms ease, --wash-b 520ms ease, --wash-c 520ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { transition: none; }
+}
+
+/* === Painel de selecao de marcas (Home + Estoque) === */
+.brand-selector {
+  display: grid;
+  gap: clamp(16px, 2vw, 22px);
+  padding: clamp(18px, 2.2vw, 28px);
+  border-radius: 30px;
+}
+
+.brand-selector-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.brand-selector-head .label {
+  margin: 0 0 4px;
+  color: color-mix(in srgb, var(--brand) 70%, var(--muted));
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.brand-selector-head h2 {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+  line-height: 1.05;
+}
+
+.brand-selector-sub {
+  margin: 8px 0 0;
+  max-width: 64ch;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.brand-selector-count {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--brand) 76%, var(--ink));
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid color-mix(in srgb, var(--brand) 22%, rgba(255, 255, 255, 0.7));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  font-size: 0.76rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.brand-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(140px, 15vw, 180px), 1fr));
+  gap: clamp(12px, 1.4vw, 16px);
+}
+
+.brand-chip {
+  --c: var(--brand);
+  --wa: var(--wash-a);
+  --wb: var(--wash-b);
+  --wc: var(--wash-c);
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 12px;
+  min-height: 132px;
+  padding: 18px 14px;
+  border-radius: 22px;
+  color: var(--ink);
+  text-align: center;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.26));
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 14px 30px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(16px) saturate(150%);
+  transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
+}
+
+.brand-chip::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(82% 80% at 80% 8%, color-mix(in srgb, var(--wb) 60%, transparent), transparent 70%),
+    radial-gradient(70% 74% at 12% 96%, color-mix(in srgb, var(--wc) 44%, transparent), transparent 74%);
+  transition: opacity 220ms ease;
+}
+
+.brand-chip:hover,
+.brand-chip.is-ambient {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--c) 42%, rgba(255, 255, 255, 0.72));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 24px 48px color-mix(in srgb, var(--c) 22%, rgba(15, 23, 42, 0.12));
+}
+
+.brand-chip:hover::after,
+.brand-chip.is-ambient::after {
+  opacity: 0.9;
+}
+
+.brand-chip.is-ambient {
+  animation: brandAmbientPulse 2400ms ease-in-out infinite;
+}
+
+.brand-chip.is-selected {
+  border-color: color-mix(in srgb, var(--c) 60%, rgba(255, 255, 255, 0.6));
+  background:
+    linear-gradient(150deg, color-mix(in srgb, var(--wa) 70%, rgba(255, 255, 255, 0.7)), rgba(255, 255, 255, 0.3));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 0 0 2px color-mix(in srgb, var(--c) 42%, transparent),
+    0 22px 46px color-mix(in srgb, var(--c) 24%, rgba(15, 23, 42, 0.14));
+}
+
+.brand-chip.is-selected::after {
+  opacity: 1;
+}
+
+.brand-chip-logo {
+  width: 58px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.brand-chip-logo img {
+  width: 60%;
+  max-height: 56%;
+  object-fit: contain;
+}
+
+.brand-chip-name {
+  font-size: 0.96rem;
+  font-weight: 850;
+}
+
+.brand-chip-check {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--c) 50%, rgba(255, 255, 255, 0.7));
+  background: rgba(255, 255, 255, 0.5);
+  transition: background 200ms ease, border-color 200ms ease;
+}
+
+.brand-chip.is-selected .brand-chip-check {
+  border-color: var(--c);
+  background:
+    radial-gradient(circle at 50% 50%, #fff 0 26%, transparent 30%),
+    var(--c);
+}
+
+.brand-selector-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filter-button {
+  --c: var(--brand);
+  --wa: var(--wash-a);
+  --wb: var(--wash-b);
+  --wc: var(--wash-c);
+  position: relative;
+  min-height: 52px;
+  padding: 0 26px;
+  color: color-mix(in srgb, var(--c) 78%, var(--ink));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--wa) 78%, rgba(255, 255, 255, 0.6)), rgba(255, 255, 255, 0.34)),
+    radial-gradient(80% 120% at 88% 0%, color-mix(in srgb, var(--wb) 60%, transparent), transparent 70%),
+    radial-gradient(80% 120% at 6% 100%, color-mix(in srgb, var(--wc) 48%, transparent), transparent 72%);
+  border: 1px solid color-mix(in srgb, var(--c) 46%, rgba(255, 255, 255, 0.72));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 18px 38px color-mix(in srgb, var(--c) 26%, rgba(15, 23, 42, 0.14));
+  backdrop-filter: blur(18px) saturate(170%);
+  font-weight: 850;
+  letter-spacing: 0.01em;
+  transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+}
+
+.filter-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.94),
+    0 26px 52px color-mix(in srgb, var(--c) 32%, rgba(15, 23, 42, 0.16));
+}
+
+.filter-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.show-all-button {
+  min-height: 52px;
+}
+
+@keyframes brandAmbientPulse {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 18px 36px color-mix(in srgb, var(--c) 14%, rgba(15, 23, 42, 0.1)); }
+  50% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 26px 54px color-mix(in srgb, var(--c) 30%, rgba(15, 23, 42, 0.12)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-chip.is-ambient { animation: none; }
+}
+
+@media (max-width: 640px) {
+  .brand-selector-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+  .brand-selector-actions .button {
+    flex: 1 1 100%;
+  }
+}
+
+/* === Heroi rico: carros "rodando" ao fundo + logos grandes ao lado === */
+.hero-rich {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  background: #06080d;
+}
+
+.hero-rich::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(100deg, rgba(4, 7, 12, 0.94) 0 36%, rgba(4, 7, 12, 0.58) 56%, rgba(4, 7, 12, 0.32) 100%),
+    radial-gradient(60% 80% at 90% 16%, color-mix(in srgb, var(--wash-b) 38%, transparent), transparent 70%);
+}
+
+.hero-road {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.hero-road-img {
+  position: absolute;
+  inset: -8% -12%;
+  background-size: cover;
+  background-position: center;
+  will-change: transform;
+}
+
+.hero-road-img-a {
+  background-image: url("https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1600&q=80");
+  opacity: 0.55;
+  animation: heroPanA 26s ease-in-out infinite alternate;
+}
+
+.hero-road-img-b {
+  background-image: url("https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=1600&q=80");
+  opacity: 0.3;
+  mix-blend-mode: screen;
+  animation: heroPanB 32s ease-in-out infinite alternate;
+}
+
+.hero-road-streaks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.55;
+  background: repeating-linear-gradient(98deg, transparent 0 46px, rgba(255, 255, 255, 0.05) 46px 48px);
+  animation: heroStreaks 1.5s linear infinite;
+}
+
+@keyframes heroPanA {
+  from { transform: translate3d(-3%, 0, 0) scale(1.06); }
+  to { transform: translate3d(3%, 1%, 0) scale(1.12); }
+}
+
+@keyframes heroPanB {
+  from { transform: translate3d(2%, 0, 0) scale(1.08); }
+  to { transform: translate3d(-2%, -1%, 0) scale(1.04); }
+}
+
+@keyframes heroStreaks {
+  from { background-position: 0 0; }
+  to { background-position: -240px 0; }
+}
+
+.hero-rich .hero-copy {
+  z-index: 4;
+}
+
+.hero-rich .hero-stage {
+  position: relative;
+  z-index: 4;
+  align-self: center;
+  display: block;
+  min-height: 0;
+}
+
+.hero-brands-label {
+  margin: 0 0 14px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.brand-hero {
+  display: grid;
+  gap: clamp(14px, 1.6vw, 18px);
+}
+
+.brand-hero-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(12px, 1.2vw, 16px);
+}
+
+/* Tiles grandes de marca: brasao na cor da marca + base escura (ex.: BMW azul e preto) */
+.brand-chip-lg {
+  min-height: clamp(140px, 15vw, 184px);
+  gap: 14px;
+  color: #fff;
+  border-radius: 24px;
+  background:
+    linear-gradient(158deg, color-mix(in srgb, var(--c) 34%, #0a0e16) 0%, #090d15 72%),
+    radial-gradient(74% 60% at 82% 6%, color-mix(in srgb, var(--c) 58%, transparent), transparent 68%);
+  border: 1px solid color-mix(in srgb, var(--c) 44%, rgba(255, 255, 255, 0.18));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 22px 46px rgba(0, 0, 0, 0.4);
+  backdrop-filter: none;
+  animation: brandChipIn 520ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.brand-chip-lg::after {
+  background:
+    radial-gradient(80% 70% at 82% 6%, color-mix(in srgb, var(--c) 30%, transparent), transparent 70%);
+}
+
+.brand-chip-lg .brand-chip-logo {
+  width: clamp(64px, 7vw, 94px);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 1px 0 #fff, 0 10px 22px rgba(0, 0, 0, 0.3);
+}
+
+.brand-chip-lg .brand-chip-logo img {
+  width: 66%;
+  max-height: 62%;
+}
+
+.brand-chip-lg .brand-chip-name {
+  color: #fff;
+  font-size: clamp(1rem, 1.3vw, 1.2rem);
+}
+
+.brand-chip-lg:hover,
+.brand-chip-lg.is-ambient {
+  transform: translateY(-6px) scale(1.015);
+  border-color: color-mix(in srgb, var(--c) 72%, rgba(255, 255, 255, 0.3));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 30px 62px color-mix(in srgb, var(--c) 42%, rgba(0, 0, 0, 0.5));
+}
+
+.brand-chip-lg.is-selected {
+  border-color: color-mix(in srgb, var(--c) 90%, #fff);
+  background:
+    linear-gradient(158deg, color-mix(in srgb, var(--c) 54%, #0a0e16) 0%, #0a0f18 74%),
+    radial-gradient(76% 64% at 82% 6%, color-mix(in srgb, var(--c) 72%, transparent), transparent 66%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 0 0 2px color-mix(in srgb, var(--c) 72%, transparent),
+    0 26px 56px color-mix(in srgb, var(--c) 44%, rgba(0, 0, 0, 0.5));
+}
+
+.brand-chip-lg .brand-chip-check {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.brand-chip-lg.is-selected .brand-chip-check {
+  border-color: #fff;
+  background: radial-gradient(circle at 50% 50%, var(--c) 0 30%, transparent 34%), #fff;
+}
+
+@keyframes brandChipIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-road-img,
+  .hero-road-streaks,
+  .brand-chip-lg { animation: none; }
+}
+
+@media (max-width: 960px) {
+  .hero-rich { grid-template-columns: 1fr; }
+  .hero-rich::before {
+    background: linear-gradient(180deg, rgba(4, 7, 12, 0.92), rgba(4, 7, 12, 0.66));
+  }
+}
+
+@media (max-width: 560px) {
+  .brand-hero-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* === Estoque: cards ainda maiores e mais separados === */
+.stock-showcase-grid {
+  grid-template-columns: repeat(auto-fill, minmax(clamp(340px, 33vw, 460px), 1fr));
+  gap: clamp(26px, 3.2vw, 46px);
+}
+
+.stock-showcase-grid .vehicle-image-landing {
+  aspect-ratio: 1.6 / 1;
+}
+
+.stock-showcase-grid .vehicle-landing-title {
+  font-size: clamp(1.5rem, 2.1vw, 2.05rem);
+}
+
+.stock-showcase-grid .vehicle-landing-body {
+  padding: 20px 22px 22px;
+}
+
+@media (max-width: 640px) {
+  .stock-showcase-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* === Ficha tecnica sobreposta ao clicar no veiculo (igual a referencia) === */
+.vehicle-spec-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  width: auto;
+  max-height: none;
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 3vw, 44px);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background:
+    radial-gradient(60% 60% at 50% 28%, color-mix(in srgb, var(--vehicle-tone) 20%, transparent), transparent 70%),
+    rgba(8, 12, 20, 0.52);
+  backdrop-filter: blur(9px) saturate(140%);
+  -webkit-backdrop-filter: blur(9px) saturate(140%);
+  cursor: zoom-out;
+  animation: model3dFade 200ms ease both;
+}
+
+.vehicle-spec-panel::before,
+.vehicle-spec-panel::after {
+  display: none;
+}
+
+.vehicle-spec-sheet {
+  position: relative;
+  width: min(1000px, 100%);
+  max-height: min(88vh, 780px);
+  overflow: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: clamp(16px, 2vw, 28px);
+  padding: clamp(18px, 2.2vw, 32px);
+  border-radius: 32px;
+  color: var(--ink);
+  cursor: auto;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.34) 48%, rgba(255, 255, 255, 0.46)),
+    radial-gradient(82% 58% at 86% 6%, color-mix(in srgb, var(--vehicle-wash-b) 64%, transparent), transparent 72%),
+    radial-gradient(78% 74% at 4% 100%, color-mix(in srgb, var(--vehicle-wash-c) 46%, transparent), transparent 76%);
+  border: 1px solid color-mix(in srgb, var(--vehicle-tone) 28%, rgba(255, 255, 255, 0.72));
+  box-shadow:
+    0 40px 96px color-mix(in srgb, var(--vehicle-tone) 18%, rgba(8, 12, 20, 0.5)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  animation: model3dRise 280ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.vehicle-spec-visual {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.vehicle-spec-thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(54px, 1fr));
+  gap: 8px;
+}
+
+.vehicle-spec-thumbs img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.62);
+}
+
+.vehicle-spec-info {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+@media (max-width: 760px) {
+  .vehicle-spec-sheet {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* === Vitrine de marcas em maior destaque (3 colunas, logos maiores) === */
+.brand-hero-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.brand-chip-lg {
+  min-height: clamp(150px, 15vw, 198px);
+}
+
+.brand-chip-lg .brand-chip-logo {
+  width: clamp(74px, 8vw, 112px);
+  border-radius: 24px;
+}
+
+.brand-chip-lg .brand-chip-logo img {
+  width: 70%;
+  max-height: 66%;
+}
+
+/* Marcas sem estoque: cinza + "Em breve" */
+.brand-chip.is-coming-soon {
+  cursor: default;
+  filter: grayscale(1);
+  opacity: 0.6;
+  animation: none;
+}
+
+.brand-chip-lg.is-coming-soon {
+  color: rgba(255, 255, 255, 0.66);
+  background: linear-gradient(158deg, #1b212c 0%, #11151d 72%);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 16px 32px rgba(0, 0, 0, 0.34);
+}
+
+.brand-chip-lg.is-coming-soon .brand-chip-logo {
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.brand-chip-soon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d4dbe6;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+}
+
+@media (max-width: 720px) {
+  .brand-hero-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* === Destaques: 3 cards grandes (foto a esquerda, ficha tecnica a direita) === */
+.featured-showcase {
+  display: grid;
+  gap: clamp(18px, 2vw, 28px);
+}
+
+.featured-list {
+  display: grid;
+  gap: clamp(18px, 2.4vw, 30px);
+}
+
+.featured-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  gap: clamp(16px, 2.2vw, 32px);
+  align-items: stretch;
+  padding: clamp(16px, 1.8vw, 24px);
+  border-radius: 32px;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.24) 48%, rgba(255, 255, 255, 0.36)),
+    radial-gradient(70% 80% at 92% 6%, color-mix(in srgb, var(--vehicle-wash-b) 52%, transparent), transparent 72%),
+    radial-gradient(64% 78% at 4% 96%, color-mix(in srgb, var(--vehicle-wash-c) 38%, transparent), transparent 76%);
+  border: 1px solid color-mix(in srgb, var(--vehicle-tone) 20%, var(--glass-stroke));
+  box-shadow: 0 26px 60px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(18px) saturate(150%);
+  animation: featuredRowIn 480ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.featured-photo {
+  position: relative;
+  min-height: clamp(250px, 27vw, 380px);
+  border-radius: 24px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.12)),
+    radial-gradient(80% 76% at 76% 14%, color-mix(in srgb, var(--vehicle-wash-b) 64%, transparent), transparent 72%),
+    radial-gradient(78% 78% at 16% 92%, color-mix(in srgb, var(--vehicle-wash-c) 44%, transparent), transparent 74%);
+}
+
+.featured-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.featured-photo-glow {
+  position: absolute;
+  inset: 8%;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 999px;
+  background: radial-gradient(60% 54% at 52% 46%, color-mix(in srgb, var(--vehicle-wash-a) 56%, transparent), transparent 72%);
+  filter: blur(22px);
+}
+
+.featured-brand-tag {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2;
+  padding: 6px 13px;
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--vehicle-tone) 80%, var(--ink));
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid color-mix(in srgb, var(--vehicle-tone) 24%, rgba(255, 255, 255, 0.7));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.featured-sheet {
+  display: grid;
+  align-content: center;
+  gap: 11px;
+  padding: clamp(6px, 1vw, 16px) clamp(6px, 1vw, 14px);
+}
+
+.featured-sheet h3 {
+  margin: 0;
+  font-size: clamp(1.6rem, 2.5vw, 2.5rem);
+  line-height: 1;
+}
+
+.featured-version {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 720;
+}
+
+.featured-sheet .price.big {
+  margin: 4px 0 2px;
+}
+
+.featured-spec-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 22px;
+  margin: 8px 0 4px;
+}
+
+.featured-spec-grid dt {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 820;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.featured-spec-grid dd {
+  margin: 3px 0 0;
+  font-weight: 760;
+}
+
+.featured-desc {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.featured-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.featured-nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.featured-page {
+  color: var(--muted);
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  font-variant-numeric: tabular-nums;
+}
+
+.featured-nav-btn {
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.56);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86), 0 12px 26px rgba(15, 23, 42, 0.1);
+}
+
+.featured-nav-next {
+  min-height: 50px;
+  gap: 8px;
+}
+
+@keyframes featuredRowIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .featured-row { animation: none; }
+}
+
+@media (max-width: 860px) {
+  .featured-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+  .featured-spec-grid { grid-template-columns: 1fr; }
+  .featured-nav-next { flex: 1 1 auto; }
+}
+
+/* === Cards "Estoque {Marca}": rolagem horizontal pelos modelos + datasheet === */
+.featured-stack {
+  display: grid;
+  gap: clamp(18px, 2.4vw, 30px);
+}
+
+.brand-stock-card {
+  position: relative;
+  padding: clamp(16px, 1.8vw, 26px);
+  border-radius: 32px;
+  overflow: hidden;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.64), rgba(255, 255, 255, 0.26) 48%, rgba(255, 255, 255, 0.38)),
+    radial-gradient(70% 80% at 94% 4%, color-mix(in srgb, var(--vehicle-wash-b) 50%, transparent), transparent 72%),
+    radial-gradient(62% 78% at 2% 98%, color-mix(in srgb, var(--vehicle-wash-c) 36%, transparent), transparent 76%);
+  border: 1px solid color-mix(in srgb, var(--vehicle-tone) 22%, var(--glass-stroke));
+  box-shadow: 0 26px 60px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+
+/* Faixa lateral na cor da marca */
+.brand-stock-card::before {
+  content: "";
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  left: 0;
+  width: 5px;
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(180deg, var(--vehicle-tone), color-mix(in srgb, var(--vehicle-neon-b) 70%, #fff));
+  box-shadow: 0 0 18px color-mix(in srgb, var(--vehicle-tone) 40%, transparent);
+}
+
+.brand-stock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-left: 8px;
+}
+
+.brand-stock-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: clamp(1.15rem, 1.9vw, 1.55rem);
+  font-weight: 900;
+}
+
+.brand-stock-logo {
+  width: 46px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid color-mix(in srgb, var(--vehicle-tone) 26%, rgba(255, 255, 255, 0.7));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.brand-stock-logo img {
+  width: 62%;
+  max-height: 60%;
+  object-fit: contain;
+}
+
+.brand-stock-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-stock-count {
+  color: var(--muted);
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+}
+
+.brand-stock-nav .featured-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Separador na cor da marca */
+.brand-stock-sep {
+  display: block;
+  height: 4px;
+  margin: 14px 0 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--vehicle-tone), color-mix(in srgb, var(--vehicle-neon-b) 76%, #fff) 58%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--vehicle-tone) 42%, transparent);
+}
+
+.brand-stock-scroller {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  margin-top: 8px;
+  border-radius: 24px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--vehicle-tone) 44%, rgba(15, 23, 42, 0.2)) transparent;
+}
+
+.brand-stock-scroller::-webkit-scrollbar {
+  height: 8px;
+}
+
+.brand-stock-scroller::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--vehicle-tone) 42%, rgba(15, 23, 42, 0.2));
+  border-radius: 999px;
+}
+
+.brand-stock-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(16px, 2.2vw, 32px);
+  padding: 4px;
+}
+
+.brand-stock-dots {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.brand-stock-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--vehicle-tone) 24%, rgba(15, 23, 42, 0.18));
+  transition: width 220ms ease, background 220ms ease;
+}
+
+.brand-stock-dots span.is-active {
+  width: 22px;
+  background: var(--vehicle-tone);
+}
+
+/* Ficha tecnica com linhas de referencia (datasheet) */
+.datasheet {
+  display: grid;
+  margin: 8px 0 2px;
+}
+
+.datasheet-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 2px;
+  border-bottom: 1px solid color-mix(in srgb, var(--vehicle-tone) 16%, var(--line));
+}
+
+.datasheet-row:first-child {
+  border-top: 1px solid color-mix(in srgb, var(--vehicle-tone) 16%, var(--line));
+}
+
+.datasheet-row dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 820;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.datasheet-lead {
+  flex: 1;
+  align-self: flex-end;
+  height: 0;
+  margin-bottom: 5px;
+  border-bottom: 1px dotted color-mix(in srgb, var(--vehicle-tone) 38%, var(--line));
+}
+
+.datasheet-row dd {
+  margin: 0;
+  font-weight: 820;
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .brand-stock-slide { grid-template-columns: 1fr; }
+}
