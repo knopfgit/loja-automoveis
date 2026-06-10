@@ -59,6 +59,13 @@ enum VehicleOrigin {
   TRADE_IN // troca
 }
 
+enum MediaRole {
+  GALLERY
+  SPIN_360
+  INTERIOR
+  VIDEO
+}
+
 enum FuelType {
   GASOLINE
   ETHANOL
@@ -408,14 +415,14 @@ model PasswordResetToken {
 }
 
 model LoginHistory {
-  id         String   @id @default(uuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  success    Boolean
-  ipAddress  String?
-  userAgent  String?
-  reason     String?
-  createdAt  DateTime @default(now())
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  success   Boolean
+  ipAddress String?
+  userAgent String?
+  reason    String?
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([createdAt])
@@ -427,16 +434,16 @@ model Employee {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  fullName       String
-  cpf            String    @unique
-  email          String
-  phone          String?
-  whatsapp       String?
-  position       String? // cargo
-  admissionDate  DateTime?
-  active         Boolean   @default(true)
-  pixKey         String?
-  internalNotes  String?
+  fullName      String
+  cpf           String    @unique
+  email         String
+  phone         String?
+  whatsapp      String?
+  position      String? // cargo
+  admissionDate DateTime?
+  active        Boolean   @default(true)
+  pixKey        String?
+  internalNotes String?
 
   // Default commission rule for this seller
   defaultCommissionRuleId String?
@@ -458,13 +465,13 @@ model Customer {
   userId String? @unique
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  fullName     String
-  personType   PersonType @default(INDIVIDUAL)
-  document     String     @unique // CPF or CNPJ (digits only)
-  email        String?
-  phone        String?
-  whatsapp     String?
-  birthDate    DateTime?
+  fullName   String
+  personType PersonType @default(INDIVIDUAL)
+  document   String     @unique // CPF or CNPJ (digits only)
+  email      String?
+  phone      String?
+  whatsapp   String?
+  birthDate  DateTime?
 
   // Marketing / LGPD consents (snapshot of current preference)
   marketingConsent Boolean @default(false)
@@ -492,19 +499,19 @@ model Customer {
 }
 
 model Address {
-  id         String  @id @default(uuid())
+  id         String   @id @default(uuid())
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
-  label       String? // "Casa", "Trabalho"
-  zipCode     String? // CEP
-  street      String?
-  number      String?
-  complement  String?
-  district    String? // bairro
-  city        String?
-  state       String? // UF
-  isPrimary   Boolean @default(true)
+  label      String? // "Casa", "Trabalho"
+  zipCode    String? // CEP
+  street     String?
+  number     String?
+  complement String?
+  district   String? // bairro
+  city       String?
+  state      String? // UF
+  isPrimary  Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -518,28 +525,28 @@ model Address {
 // ============================================================================
 
 model Store {
-  id          String  @id @default(uuid())
-  name        String
-  cnpj        String?
-  phone       String?
-  whatsapp    String?
-  email       String?
+  id       String  @id @default(uuid())
+  name     String
+  cnpj     String?
+  phone    String?
+  whatsapp String?
+  email    String?
 
-  street      String?
-  number      String?
-  complement  String?
-  district    String?
-  zipCode     String?
-  city        String?
-  state       String?
-  latitude    Float?
-  longitude   Float?
+  street     String?
+  number     String?
+  complement String?
+  district   String?
+  zipCode    String?
+  city       String?
+  state      String?
+  latitude   Float?
+  longitude  Float?
 
-  openingHours    Json? // structured business hours
-  googleMapsUrl   String?
-  directionsUrl   String?
-  socialLinks     Json? // { instagram, facebook, ... }
-  integrations    Json? // external integration config
+  openingHours  Json? // structured business hours
+  googleMapsUrl String?
+  directionsUrl String?
+  socialLinks   Json? // { instagram, facebook, ... }
+  integrations  Json? // external integration config
 
   isActive Boolean @default(true)
 
@@ -554,44 +561,44 @@ model Store {
 // ============================================================================
 
 model Vehicle {
-  id           String        @id @default(uuid())
-  publicCode   String        @unique // código público amigável
-  slug         String        @unique
-  status       VehicleStatus @default(DRAFT)
+  id         String        @id @default(uuid())
+  publicCode String        @unique // código público amigável
+  slug       String        @unique
+  status     VehicleStatus @default(DRAFT)
 
   // Identification
-  brand            String
-  model            String
-  version          String?
-  manufactureYear  Int
-  modelYear        Int
-  plate            String?  @unique
-  renavam          String?  @unique
-  chassis          String?  @unique
-  engineNumber     String?
-  category         String? // categoria (SUV, sedan...)
-  bodyType         String? // tipo de carroceria
-  color            String?
-  fuel             FuelType?
-  transmission     Transmission?
-  doors            Int?
-  mileage          Int?
-  seats            Int?
-  condition        VehicleCondition @default(USED)
-  origin           VehicleOrigin    @default(OWN_PURCHASE)
-  entryDate        DateTime         @default(now())
-  archiveReason    String?
+  brand           String
+  model           String
+  version         String?
+  manufactureYear Int
+  modelYear       Int
+  plate           String?          @unique
+  renavam         String?          @unique
+  chassis         String?          @unique
+  engineNumber    String?
+  category        String? // categoria (SUV, sedan...)
+  bodyType        String? // tipo de carroceria
+  color           String?
+  fuel            FuelType?
+  transmission    Transmission?
+  doors           Int?
+  mileage         Int?
+  seats           Int?
+  condition       VehicleCondition @default(USED)
+  origin          VehicleOrigin    @default(OWN_PURCHASE)
+  entryDate       DateTime         @default(now())
+  archiveReason   String?
 
   // Commercial data (INTERNAL - never exposed publicly except announcedPrice)
-  purchasePrice    Decimal? @db.Decimal(14, 2)
-  suggestedPrice   Decimal? @db.Decimal(14, 2)
-  announcedPrice   Decimal? @db.Decimal(14, 2)
-  minPrice         Decimal? @db.Decimal(14, 2) // valor mínimo autorizado
-  soldPrice        Decimal? @db.Decimal(14, 2)
-  soldAt           DateTime?
-  featured         Boolean  @default(false)
-  availableForAd   Boolean  @default(false)
-  internalNotes    String?
+  purchasePrice     Decimal?  @db.Decimal(14, 2)
+  suggestedPrice    Decimal?  @db.Decimal(14, 2)
+  announcedPrice    Decimal?  @db.Decimal(14, 2)
+  minPrice          Decimal?  @db.Decimal(14, 2) // valor mínimo autorizado
+  soldPrice         Decimal?  @db.Decimal(14, 2)
+  soldAt            DateTime?
+  featured          Boolean   @default(false)
+  availableForAd    Boolean   @default(false)
+  internalNotes     String?
   publicDescription String?
 
   // Engagement metrics
@@ -637,34 +644,35 @@ model VehicleSpec {
   vehicleId String  @unique
   vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
-  engine            String? // motorização
-  power             String? // potência (cv)
-  torque            String?
-  displacement      String? // cilindrada
-  traction          String? // tração
-  steering          String? // direção
-  suspension        String?
-  urbanConsumption  String?
-  roadConsumption   String?
-  tankCapacity      String?
-  trunkCapacity     String?
-  length            String?
-  width             String?
-  height            String?
-  wheelbase         String? // distância entre eixos
-  weight            String?
-  airbags           String?
-  brakes            String?
-  safetyItems       String[] @default([])
-  comfortItems      String[] @default([])
-  multimedia        String[] @default([])
-  options           String[] @default([])
-  technicalNotes    String?
+  engine           String? // motorização
+  power            String? // potência (cv)
+  torque           String?
+  displacement     String? // cilindrada
+  traction         String? // tração
+  steering         String? // direção
+  suspension       String?
+  urbanConsumption String?
+  roadConsumption  String?
+  tankCapacity     String?
+  trunkCapacity    String?
+  length           String?
+  width            String?
+  height           String?
+  wheelbase        String? // distância entre eixos
+  weight           String?
+  airbags          String?
+  brakes           String?
+  safetyItems      String[] @default([])
+  comfortItems     String[] @default([])
+  multimedia       String[] @default([])
+  options          String[] @default([])
+  technicalNotes   String?
+  model3dUrl       String? // .glb opcional p/ model-viewer
 
   // Provenance / audit of auto-fill
-  source         SpecSource @default(MANUAL)
-  lastSyncedAt   DateTime?
-  fieldSources   Json? // map of field -> source for manual override auditing
+  source       SpecSource @default(MANUAL)
+  lastSyncedAt DateTime?
+  fieldSources Json? // map of field -> source for manual override auditing
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -677,31 +685,39 @@ model VehicleMedia {
   vehicleId String
   vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
-  type        String  @default("image") // image | video
-  url         String
-  storageKey  String?
-  isMain      Boolean @default(false)
-  position    Int     @default(0)
-  altText     String?
-  published   Boolean @default(true)
+  type         String    @default("image") // image | video
+  role         MediaRole @default(GALLERY)
+  url          String
+  storageKey   String?
+  isMain       Boolean   @default(false)
+  position     Int       @default(0)
+  altText      String?
+  published    Boolean   @default(true)
   uploadedById String?
+
+  mimeType    String?
+  width       Int?
+  height      Int?
+  sizeBytes   Int?
+  placeholder String?
 
   createdAt DateTime @default(now())
 
   @@index([vehicleId])
   @@index([position])
+  @@index([vehicleId, role, position])
   @@map("vehicle_media")
 }
 
 model VehicleStockMovement {
-  id        String            @id @default(uuid())
-  vehicleId String
-  vehicle   Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  type      StockMovementType
-  fromStatus VehicleStatus?
-  toStatus   VehicleStatus?
-  reason     String?
-  notes      String?
+  id            String            @id @default(uuid())
+  vehicleId     String
+  vehicle       Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  type          StockMovementType
+  fromStatus    VehicleStatus?
+  toStatus      VehicleStatus?
+  reason        String?
+  notes         String?
   performedById String?
 
   createdAt DateTime @default(now())
@@ -741,11 +757,11 @@ model VehicleReservation {
   vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
 
   customerId    String
-  customer      Customer @relation(fields: [customerId], references: [id])
+  customer      Customer          @relation(fields: [customerId], references: [id])
   sellerId      String? // Employee id
-  reservedAt    DateTime @default(now())
+  reservedAt    DateTime          @default(now())
   expiresAt     DateTime
-  depositAmount Decimal? @db.Decimal(14, 2)
+  depositAmount Decimal?          @db.Decimal(14, 2)
   paymentMethod PaymentMethod?
   status        ReservationStatus @default(ACTIVE)
   cancelReason  String?
@@ -772,21 +788,21 @@ model VehicleSale {
   sellerId   String
   seller     Employee @relation(fields: [sellerId], references: [id])
 
-  saleDate        DateTime?
-  announcedPrice  Decimal?  @db.Decimal(14, 2)
-  negotiatedPrice Decimal?  @db.Decimal(14, 2)
-  discount        Decimal?  @db.Decimal(14, 2)
-  finalPrice      Decimal?  @db.Decimal(14, 2)
-  paymentMethod   PaymentMethod?
-  downPayment     Decimal?  @db.Decimal(14, 2)
-  installments    Int?
-  financing       Boolean   @default(false)
+  saleDate             DateTime?
+  announcedPrice       Decimal?       @db.Decimal(14, 2)
+  negotiatedPrice      Decimal?       @db.Decimal(14, 2)
+  discount             Decimal?       @db.Decimal(14, 2)
+  finalPrice           Decimal?       @db.Decimal(14, 2)
+  paymentMethod        PaymentMethod?
+  downPayment          Decimal?       @db.Decimal(14, 2)
+  installments         Int?
+  financing            Boolean        @default(false)
   financialInstitution String?
   tradeInVehicleId     String? // veículo recebido como troca (optional)
   deliveryForecast     DateTime?
   deliveredAt          DateTime?
   notes                String?
-  status               SaleStatus @default(NEGOTIATING)
+  status               SaleStatus     @default(NEGOTIATING)
 
   commission Commission?
 
@@ -806,7 +822,7 @@ model VehicleSale {
 // ============================================================================
 
 model FinancialEntry {
-  id        String  @id @default(uuid())
+  id        String   @id @default(uuid())
   vehicleId String?
   vehicle   Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
 
@@ -886,7 +902,7 @@ model CommissionRule {
 }
 
 model Commission {
-  id       String @id @default(uuid())
+  id       String   @id @default(uuid())
   sellerId String
   seller   Employee @relation(fields: [sellerId], references: [id])
 
@@ -895,18 +911,18 @@ model Commission {
   vehicleId String?
   vehicle   Vehicle?    @relation(fields: [vehicleId], references: [id])
 
-  ruleId       String?
-  rule         CommissionRule? @relation(fields: [ruleId], references: [id])
-  calcBase     Decimal         @db.Decimal(14, 2) // base de cálculo
-  percentage   Decimal?        @db.Decimal(7, 4)
-  amount       Decimal         @db.Decimal(14, 2)
-  status       CommissionStatus @default(PENDING)
-  generatedAt  DateTime         @default(now())
-  approvedAt   DateTime?
-  paidAt       DateTime?
-  approvedById String?
-  notes        String?
-  manualAdjustment Boolean      @default(false)
+  ruleId           String?
+  rule             CommissionRule?  @relation(fields: [ruleId], references: [id])
+  calcBase         Decimal          @db.Decimal(14, 2) // base de cálculo
+  percentage       Decimal?         @db.Decimal(7, 4)
+  amount           Decimal          @db.Decimal(14, 2)
+  status           CommissionStatus @default(PENDING)
+  generatedAt      DateTime         @default(now())
+  approvedAt       DateTime?
+  paidAt           DateTime?
+  approvedById     String?
+  notes            String?
+  manualAdjustment Boolean          @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -941,26 +957,26 @@ model Supplier {
 }
 
 model Part {
-  id           String     @id @default(uuid())
-  internalCode String     @unique
-  sku          String?    @unique
-  barcode      String?
-  name         String
-  category     String?
-  brand        String?
+  id              String     @id @default(uuid())
+  internalCode    String     @unique
+  sku             String?    @unique
+  barcode         String?
+  name            String
+  category        String?
+  brand           String?
   compatibleModel String? // modelo compatível
-  description  String?
-  quantity     Int        @default(0)
-  minQuantity  Int        @default(0)
-  unit         String     @default("UN") // unidade de medida
-  costPrice    Decimal    @default(0) @db.Decimal(14, 2)
-  averagePrice Decimal    @default(0) @db.Decimal(14, 2)
-  location     String? // localização no estoque
-  supplierId   String?
-  supplier     Supplier?  @relation(fields: [supplierId], references: [id])
-  entryDate    DateTime   @default(now())
-  status       PartStatus @default(ACTIVE)
-  notes        String?
+  description     String?
+  quantity        Int        @default(0)
+  minQuantity     Int        @default(0)
+  unit            String     @default("UN") // unidade de medida
+  costPrice       Decimal    @default(0) @db.Decimal(14, 2)
+  averagePrice    Decimal    @default(0) @db.Decimal(14, 2)
+  location        String? // localização no estoque
+  supplierId      String?
+  supplier        Supplier?  @relation(fields: [supplierId], references: [id])
+  entryDate       DateTime   @default(now())
+  status          PartStatus @default(ACTIVE)
+  notes           String?
 
   movements      PartStockMovement[]
   maintenanceUse MaintenancePart[]
@@ -975,13 +991,13 @@ model Part {
 }
 
 model PartStockMovement {
-  id     String           @id @default(uuid())
-  partId String
-  part   Part             @relation(fields: [partId], references: [id], onDelete: Cascade)
-  type   PartMovementType
-  quantity Int
-  unitCost Decimal?       @db.Decimal(14, 2)
-  totalCost Decimal?      @db.Decimal(14, 2)
+  id        String           @id @default(uuid())
+  partId    String
+  part      Part             @relation(fields: [partId], references: [id], onDelete: Cascade)
+  type      PartMovementType
+  quantity  Int
+  unitCost  Decimal?         @db.Decimal(14, 2)
+  totalCost Decimal?         @db.Decimal(14, 2)
 
   // Optional links when used in a maintenance / applied to a vehicle
   vehicleId     String?
@@ -1012,28 +1028,28 @@ model Maintenance {
   vehicleId String
   vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
-  type          MaintenanceType   @default(CORRECTIVE)
-  description   String?
-  workshop      String? // oficina
-  supplierId    String?
-  supplier      Supplier?         @relation(fields: [supplierId], references: [id])
-  openedAt      DateTime          @default(now())
-  forecastDate  DateTime?
-  completedAt   DateTime?
-  mileage       Int?
-  responsibleId String?
-  laborCost     Decimal           @default(0) @db.Decimal(14, 2)
-  partsCost     Decimal           @default(0) @db.Decimal(14, 2)
-  totalCost     Decimal           @default(0) @db.Decimal(14, 2)
-  invoiceNumber String? // nota fiscal
-  warranty      String?
-  nextRevisionDate     DateTime?
-  nextRevisionMileage  Int?
-  status        MaintenanceStatus @default(SCHEDULED)
-  notes         String?
+  type                MaintenanceType   @default(CORRECTIVE)
+  description         String?
+  workshop            String? // oficina
+  supplierId          String?
+  supplier            Supplier?         @relation(fields: [supplierId], references: [id])
+  openedAt            DateTime          @default(now())
+  forecastDate        DateTime?
+  completedAt         DateTime?
+  mileage             Int?
+  responsibleId       String?
+  laborCost           Decimal           @default(0) @db.Decimal(14, 2)
+  partsCost           Decimal           @default(0) @db.Decimal(14, 2)
+  totalCost           Decimal           @default(0) @db.Decimal(14, 2)
+  invoiceNumber       String? // nota fiscal
+  warranty            String?
+  nextRevisionDate    DateTime?
+  nextRevisionMileage Int?
+  status              MaintenanceStatus @default(SCHEDULED)
+  notes               String?
 
-  parts             MaintenancePart[]
-  partStockMoves    PartStockMovement[]
+  parts          MaintenancePart[]
+  partStockMoves PartStockMovement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1105,9 +1121,9 @@ model DocumentChecklist {
 }
 
 model Document {
-  id             String         @id @default(uuid())
+  id             String            @id @default(uuid())
   documentTypeId String
-  documentType   DocumentType   @relation(fields: [documentTypeId], references: [id])
+  documentType   DocumentType      @relation(fields: [documentTypeId], references: [id])
   ownerType      DocumentOwnerType
 
   vehicleId  String?
@@ -1116,19 +1132,19 @@ model Document {
   customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
   saleId     String?
 
-  fileUrl        String?
-  storageKey     String?
-  originalName   String?
-  mimeType       String?
-  size           Int?
-  issueDate      DateTime?
-  expiryDate     DateTime?
-  status         DocumentStatus @default(NOT_REQUESTED)
-  responsibleId  String?
-  uploadedAt     DateTime?
-  validatedAt    DateTime?
-  validatedById  String?
-  notes          String?
+  fileUrl         String?
+  storageKey      String?
+  originalName    String?
+  mimeType        String?
+  size            Int?
+  issueDate       DateTime?
+  expiryDate      DateTime?
+  status          DocumentStatus @default(NOT_REQUESTED)
+  responsibleId   String?
+  uploadedAt      DateTime?
+  validatedAt     DateTime?
+  validatedById   String?
+  notes           String?
   rejectionReason String?
 
   versions DocumentVersion[]
@@ -1179,10 +1195,10 @@ model Lead {
   vehicleId String?
   vehicle   Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
 
-  origin       LeadOrigin @default(SPECIALIST_BUTTON)
-  sourcePage   String?
+  origin           LeadOrigin @default(SPECIALIST_BUTTON)
+  sourcePage       String?
   assignedSellerId String?
-  assignedSeller   Employee? @relation(fields: [assignedSellerId], references: [id], onDelete: SetNull)
+  assignedSeller   Employee?  @relation(fields: [assignedSellerId], references: [id], onDelete: SetNull)
   initialMessage   String?
   whatsappUrl      String?
   status           LeadStatus @default(NEW)
@@ -1204,12 +1220,12 @@ model Lead {
 }
 
 model LeadInteraction {
-  id        String  @id @default(uuid())
-  leadId    String
-  lead      Lead    @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  type      String // "note", "call", "whatsapp", "status_change"
-  content   String?
-  authorId  String?
+  id       String  @id @default(uuid())
+  leadId   String
+  lead     Lead    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type     String // "note", "call", "whatsapp", "status_change"
+  content  String?
+  authorId String?
 
   createdAt DateTime @default(now())
 
@@ -1256,17 +1272,17 @@ model VehicleView {
 }
 
 model CookieConsent {
-  id         String          @id @default(uuid())
-  customerId String?
-  customer   Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  sessionId  String?
-  category   ConsentCategory
-  granted    Boolean
+  id           String          @id @default(uuid())
+  customerId   String?
+  customer     Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  sessionId    String?
+  category     ConsentCategory
+  granted      Boolean
   termsVersion String?
-  ipHash     String?
-  userAgent  String?
-  latitude   Float? // only when LOCATION consent granted
-  longitude  Float?
+  ipHash       String?
+  userAgent    String?
+  latitude     Float? // only when LOCATION consent granted
+  longitude    Float?
 
   createdAt DateTime @default(now())
 
@@ -1281,12 +1297,12 @@ model MarketingPreference {
   customerId String   @unique
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
-  emailOptIn      Boolean  @default(false)
-  whatsappOptIn   Boolean  @default(false)
-  interestBrands  String[] @default([])
-  interestModels  String[] @default([])
-  priceMin        Decimal? @db.Decimal(14, 2)
-  priceMax        Decimal? @db.Decimal(14, 2)
+  emailOptIn     Boolean  @default(false)
+  whatsappOptIn  Boolean  @default(false)
+  interestBrands String[] @default([])
+  interestModels String[] @default([])
+  priceMin       Decimal? @db.Decimal(14, 2)
+  priceMax       Decimal? @db.Decimal(14, 2)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1295,12 +1311,12 @@ model MarketingPreference {
 }
 
 model PrivacyRequest {
-  id         String               @id @default(uuid())
-  customerId String
-  customer   Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  type       PrivacyRequestType
-  status     PrivacyRequestStatus @default(PENDING)
-  payload    Json? // exported data snapshot for EXPORT
+  id          String               @id @default(uuid())
+  customerId  String
+  customer    Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type        PrivacyRequestType
+  status      PrivacyRequestStatus @default(PENDING)
+  payload     Json? // exported data snapshot for EXPORT
   processedAt DateTime?
   notes       String?
 
@@ -1317,16 +1333,16 @@ model PrivacyRequest {
 // ============================================================================
 
 model Notification {
-  id        String              @id @default(uuid())
-  userId    String
-  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  channel   NotificationChannel @default(IN_APP)
-  type      String // e.g. "document.pending", "commission.approved"
-  title     String
-  body      String?
-  data      Json?
-  status    NotificationStatus  @default(UNREAD)
-  readAt    DateTime?
+  id      String              @id @default(uuid())
+  userId  String
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel NotificationChannel @default(IN_APP)
+  type    String // e.g. "document.pending", "commission.approved"
+  title   String
+  body    String?
+  data    Json?
+  status  NotificationStatus  @default(UNREAD)
+  readAt  DateTime?
 
   createdAt DateTime @default(now())
 
@@ -1337,15 +1353,15 @@ model Notification {
 }
 
 model EmailQueue {
-  id          String      @id @default(uuid())
-  to          String
-  subject     String
-  template    String
-  context     Json?
-  status      EmailStatus @default(PENDING)
-  attempts    Int         @default(0)
-  lastError   String?
-  sentAt      DateTime?
+  id        String      @id @default(uuid())
+  to        String
+  subject   String
+  template  String
+  context   Json?
+  status    EmailStatus @default(PENDING)
+  attempts  Int         @default(0)
+  lastError String?
+  sentAt    DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1359,18 +1375,18 @@ model EmailQueue {
 // ============================================================================
 
 model AuditLog {
-  id          String      @id @default(uuid())
-  actorId     String?
-  actor       User?       @relation(fields: [actorId], references: [id], onDelete: SetNull)
-  action      AuditAction
-  entity      String // "Vehicle", "Sale", ...
-  entityId    String?
-  before      Json?
-  after       Json?
-  ipAddress   String?
-  userAgent   String?
-  source      String? // "api", "job", "seed"
-  reason      String?
+  id        String      @id @default(uuid())
+  actorId   String?
+  actor     User?       @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action    AuditAction
+  entity    String // "Vehicle", "Sale", ...
+  entityId  String?
+  before    Json?
+  after     Json?
+  ipAddress String?
+  userAgent String?
+  source    String? // "api", "job", "seed"
+  reason    String?
 
   createdAt DateTime @default(now())
 
