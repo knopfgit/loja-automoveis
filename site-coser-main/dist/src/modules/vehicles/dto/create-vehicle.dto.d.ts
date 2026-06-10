@@ -1,0 +1,30 @@
+import { FuelType, Transmission, VehicleCondition, VehicleOrigin } from '@prisma/client';
+export declare class CreateVehicleDto {
+    brand: string;
+    model: string;
+    version?: string;
+    manufactureYear: number;
+    modelYear: number;
+    plate?: string;
+    renavam?: string;
+    chassis?: string;
+    engineNumber?: string;
+    category?: string;
+    bodyType?: string;
+    color?: string;
+    fuel?: FuelType;
+    transmission?: Transmission;
+    doors?: number;
+    mileage?: number;
+    seats?: number;
+    condition?: VehicleCondition;
+    origin?: VehicleOrigin;
+    purchasePrice?: number;
+    suggestedPrice?: number;
+    announcedPrice?: number;
+    minPrice?: number;
+    featured?: boolean;
+    availableForAd?: boolean;
+    internalNotes?: string;
+    publicDescription?: string;
+}

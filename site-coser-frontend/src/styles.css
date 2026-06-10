@@ -4072,3 +4072,83 @@ html {
 @media (max-width: 860px) {
   .brand-stock-slide { grid-template-columns: 1fr; }
 }
+
+/* ===== Banner de cookies (LGPD) ===== */
+.cookie-banner {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 1000;
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 22px;
+  background: var(--page-bg-a);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.cookie-banner-text strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.cookie-banner-text p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.cookie-banner-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+}
+
+.cookie-banner-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.cookie-tag {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.cookie-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.cookie-banner-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 0;
+}
+
+@media (max-width: 560px) {
+  .cookie-banner-actions {
+    justify-content: stretch;
+  }
+  .cookie-banner-actions .button {
+    flex: 1;
+  }
+}

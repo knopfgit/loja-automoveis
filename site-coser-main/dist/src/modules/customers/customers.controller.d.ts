@@ -1,0 +1,272 @@
+import { AuthUser } from '../../common/decorators/current-user.decorator';
+import { PaginationQueryDto } from '../../common/dto/pagination.dto';
+import { CustomersService } from './customers.service';
+import { AddressDto, CreateCustomerDto, UpdateCustomerDto, UpdateMyProfileDto } from './dto/customer.dto';
+export declare class CustomersController {
+    private readonly service;
+    constructor(service: CustomersService);
+    getMe(user: AuthUser): Promise<{
+        addresses: {
+            number: string | null;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            street: string | null;
+            complement: string | null;
+            district: string | null;
+            zipCode: string | null;
+            city: string | null;
+            state: string | null;
+            label: string | null;
+            isPrimary: boolean;
+            customerId: string;
+        }[];
+        marketingPreference: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            emailOptIn: boolean;
+            whatsappOptIn: boolean;
+            interestBrands: string[];
+            interestModels: string[];
+            priceMin: import("@prisma/client/runtime/library").Decimal | null;
+            priceMax: import("@prisma/client/runtime/library").Decimal | null;
+            customerId: string;
+        } | null;
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        phone: string | null;
+        whatsapp: string | null;
+        email: string | null;
+        fullName: string;
+        userId: string | null;
+        personType: import(".prisma/client").$Enums.PersonType;
+        document: string;
+        birthDate: Date | null;
+        marketingConsent: boolean;
+        cookieConsent: boolean;
+        anonymizedAt: Date | null;
+    }>;
+    updateMe(user: AuthUser, dto: UpdateMyProfileDto): Promise<{
+        addresses: {
+            number: string | null;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            street: string | null;
+            complement: string | null;
+            district: string | null;
+            zipCode: string | null;
+            city: string | null;
+            state: string | null;
+            label: string | null;
+            isPrimary: boolean;
+            customerId: string;
+        }[];
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        phone: string | null;
+        whatsapp: string | null;
+        email: string | null;
+        fullName: string;
+        userId: string | null;
+        personType: import(".prisma/client").$Enums.PersonType;
+        document: string;
+        birthDate: Date | null;
+        marketingConsent: boolean;
+        cookieConsent: boolean;
+        anonymizedAt: Date | null;
+    }>;
+    addMyAddress(user: AuthUser, dto: AddressDto): Promise<{
+        number: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        street: string | null;
+        complement: string | null;
+        district: string | null;
+        zipCode: string | null;
+        city: string | null;
+        state: string | null;
+        label: string | null;
+        isPrimary: boolean;
+        customerId: string;
+    }>;
+    create(dto: CreateCustomerDto, user: AuthUser): Promise<{
+        addresses: {
+            number: string | null;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            street: string | null;
+            complement: string | null;
+            district: string | null;
+            zipCode: string | null;
+            city: string | null;
+            state: string | null;
+            label: string | null;
+            isPrimary: boolean;
+            customerId: string;
+        }[];
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        phone: string | null;
+        whatsapp: string | null;
+        email: string | null;
+        fullName: string;
+        userId: string | null;
+        personType: import(".prisma/client").$Enums.PersonType;
+        document: string;
+        birthDate: Date | null;
+        marketingConsent: boolean;
+        cookieConsent: boolean;
+        anonymizedAt: Date | null;
+    }>;
+    findAll(pg: PaginationQueryDto, search?: string): Promise<import("../../common/dto/paginated-result").PaginatedResult<{
+        addresses: {
+            number: string | null;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            street: string | null;
+            complement: string | null;
+            district: string | null;
+            zipCode: string | null;
+            city: string | null;
+            state: string | null;
+            label: string | null;
+            isPrimary: boolean;
+            customerId: string;
+        }[];
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        phone: string | null;
+        whatsapp: string | null;
+        email: string | null;
+        fullName: string;
+        userId: string | null;
+        personType: import(".prisma/client").$Enums.PersonType;
+        document: string;
+        birthDate: Date | null;
+        marketingConsent: boolean;
+        cookieConsent: boolean;
+        anonymizedAt: Date | null;
+    }>>;
+    findOne(id: string): Promise<{
+        addresses: {
+            number: string | null;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            street: string | null;
+            complement: string | null;
+            district: string | null;
+            zipCode: string | null;
+            city: string | null;
+            state: string | null;
+            label: string | null;
+            isPrimary: boolean;
+            customerId: string;
+        }[];
+        marketingPreference: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            emailOptIn: boolean;
+            whatsappOptIn: boolean;
+            interestBrands: string[];
+            interestModels: string[];
+            priceMin: import("@prisma/client/runtime/library").Decimal | null;
+            priceMax: import("@prisma/client/runtime/library").Decimal | null;
+            customerId: string;
+        } | null;
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        phone: string | null;
+        whatsapp: string | null;
+        email: string | null;
+        fullName: string;
+        userId: string | null;
+        personType: import(".prisma/client").$Enums.PersonType;
+        document: string;
+        birthDate: Date | null;
+        marketingConsent: boolean;
+        cookieConsent: boolean;
+        anonymizedAt: Date | null;
+    }>;
+    update(id: string, dto: UpdateCustomerDto, user: AuthUser): Promise<{
+        addresses: {
+            number: string | null;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            street: string | null;
+            complement: string | null;
+            district: string | null;
+            zipCode: string | null;
+            city: string | null;
+            state: string | null;
+            label: string | null;
+            isPrimary: boolean;
+            customerId: string;
+        }[];
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        phone: string | null;
+        whatsapp: string | null;
+        email: string | null;
+        fullName: string;
+        userId: string | null;
+        personType: import(".prisma/client").$Enums.PersonType;
+        document: string;
+        birthDate: Date | null;
+        marketingConsent: boolean;
+        cookieConsent: boolean;
+        anonymizedAt: Date | null;
+    }>;
+    addAddress(id: string, dto: AddressDto): Promise<{
+        number: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        street: string | null;
+        complement: string | null;
+        district: string | null;
+        zipCode: string | null;
+        city: string | null;
+        state: string | null;
+        label: string | null;
+        isPrimary: boolean;
+        customerId: string;
+    }>;
+    updateAddress(id: string, addressId: string, dto: AddressDto): Promise<{
+        number: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        street: string | null;
+        complement: string | null;
+        district: string | null;
+        zipCode: string | null;
+        city: string | null;
+        state: string | null;
+        label: string | null;
+        isPrimary: boolean;
+        customerId: string;
+    }>;
+    removeAddress(id: string, addressId: string): Promise<{
+        success: boolean;
+    }>;
+}
