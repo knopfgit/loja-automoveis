@@ -38,6 +38,7 @@ export function toPublicVehicle(vehicle: any) {
           .map((m: any) => ({
             url: m.url,
             type: m.type,
+            role: m.role,
             isMain: m.isMain,
             position: m.position,
             altText: m.altText,

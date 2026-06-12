@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../features/auth/AuthProvider';
 import { customerNav, type NavGroup, type NavItem, publicNav, staffNav } from '../nav';
 import { item } from '../services/data';
+import { SiteFooter } from './SiteFooter';
 
 function useUnreadCount(enabled: boolean) {
   const query = useQuery({
@@ -137,6 +138,7 @@ export function Layout() {
       <main className={`main ${user ? '' : 'main-full'}`}>
         <Outlet />
       </main>
+      {!user && <SiteFooter />}
     </div>
   );
 }

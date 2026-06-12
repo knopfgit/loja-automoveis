@@ -7,6 +7,7 @@ import { formatCurrency, imageUrl } from '../../utils/format';
 import { getVehicleBySlug, specialistContact, trackVehicleView } from './api';
 import { findDemoVehicleBySlug } from './demoVehicles';
 import { applyGlobalTheme, clearGlobalTheme, getBrandProfile, themeVarsForVehicle } from './vehicleTheme';
+import { Vehicle360Viewer } from '../../components/Vehicle360Viewer';
 
 // Modelo 3D de demonstracao. Pode ser sobrescrito por veiculo via spec.model3d (URL de um .glb).
 const DEMO_CAR_GLB = 'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/ToyCar/glTF-Binary/ToyCar.glb';
@@ -74,12 +75,25 @@ export function VehicleDetailPage() {
   const mainImage = data.media?.find((item) => item.isMain)?.url ?? data.media?.[0]?.url;
   const specModel = data.spec?.model3d ?? data.spec?.model3dUrl;
   const model3dUrl = typeof specModel === 'string' && specModel ? specModel : DEMO_CAR_GLB;
+  const spinFrames = (data.media ?? [])
+  .filter((m: any) => m.role === 'SPIN_360')
+  .map((m) => imageUrl(m.url));
 
+// Fallback DEV: enquanto não há fotos-360 reais, usa a galeria só pra testar
+// o arraste. Em produção, sem SPIN_360 real, cai na foto estática normal.
+const demoFrames = import.meta.env.DEV ? (data.media ?? []).slice(0, 8).map((m) => imageUrl(m.url)) : [];
+const frames360 = spinFrames.length >= 1 ? spinFrames : demoFrames;
   return (
     <div className="page">
       <section className="detail-layout vehicle-detail-watercolor" style={themeVarsForVehicle(data)}>
         <div className="gallery">
-          {mainImage ? <img src={imageUrl(mainImage)} alt={`${data.brand} ${data.model}`} /> : <div className="gallery-empty">Sem foto</div>}
+          {frames360.length >= 1 ? (
+            <Vehicle360Viewer frames={frames360} alt={`${data.brand} ${data.model}`} />
+          ) : mainImage ? (
+            <img src={imageUrl(mainImage)} alt={`${data.brand} ${data.model}`} />
+          ) : (
+            <div className="gallery-empty">Sem foto</div>
+          )}
           <div className="thumb-row">
             {data.media?.slice(0, 5).map((media) => <img key={media.id ?? media.url} src={imageUrl(media.url)} alt="" />)}
           </div>
