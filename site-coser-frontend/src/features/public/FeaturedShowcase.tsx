@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Car, ChevronLeft, ChevronRight, DoorOpen, Fuel, Gauge, Palette, Settings2, Users } from 'lucide-react';
+import { Calendar, Car, ChevronLeft, ChevronRight, DoorOpen, Fuel, Gauge, MessageCircle, Palette, Settings2, Users } from 'lucide-react';
 import { BrandLogo } from '../../components/BrandLogo';
 import type { Vehicle } from '../../types';
 import { formatCurrency, imageUrl } from '../../utils/format';
@@ -16,6 +16,7 @@ function display(value: unknown, fallback = 'Nao informado') {
 function brandThemeVars(brand: string): CSSProperties {
   const profile = getBrandProfile(brand);
   return {
+    '--vehicle-brand': profile.color,
     '--vehicle-tone': profile.color,
     '--vehicle-neon-a': profile.neonA,
     '--vehicle-neon-b': profile.neonB,
@@ -65,7 +66,9 @@ function VehicleSlide({ vehicle }: { vehicle: Vehicle }) {
         </dl>
         <div className="featured-actions">
           <Link className="button button-dark" to={`/veiculos/${vehicle.slug ?? vehicle.id}`}>Ver ficha completa</Link>
-          <Link className="button button-ghost" to={`/catalogo?brand=${encodeURIComponent(vehicle.brand)}`}>Ver estoque {vehicle.brand}</Link>
+          <Link className="button button-ghost" to={`/onde-estamos?veiculo=${encodeURIComponent(`${vehicle.brand} ${vehicle.model}`)}`}>
+            <MessageCircle size={16} /> Falar com consultor
+          </Link>
         </div>
       </div>
     </div>

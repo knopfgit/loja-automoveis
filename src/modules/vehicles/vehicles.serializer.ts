@@ -24,7 +24,10 @@ export function toPublicVehicle(vehicle: any) {
     mileage: vehicle.mileage,
     seats: vehicle.seats,
     condition: vehicle.condition,
-    price: vehicle.announcedPrice, // only the announced price is public
+    // Only the announced price is public. Prisma Decimal serializes as a JSON
+    // string, so coerce to number to honor the documented contract.
+    price:
+      vehicle.announcedPrice == null ? null : Number(vehicle.announcedPrice),
     featured: vehicle.featured,
     description: vehicle.publicDescription,
     available: vehicle.status === 'AVAILABLE',

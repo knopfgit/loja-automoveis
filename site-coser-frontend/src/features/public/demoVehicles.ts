@@ -9,7 +9,6 @@ const img = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=c
 
 const POOL = {
   porscheGray: img('photo-1503376780353-7e6692767b70'),
-  mclarenSilver: img('photo-1542362567-b07e54358753'),
   lamboYellow: img('photo-1525609004556-c46c7d6cf023'),
   hyper: img('photo-1544636331-e26879cd4d9b'),
   bmwBlue: img('photo-1555215695-3004980ad54e'),
@@ -69,7 +68,8 @@ const seeds: Seed[] = [
     modelYear: 2023, manufactureYear: 2022, mileage: 18700, fuel: 'Hibrido', transmission: 'Automatica 9 marchas',
     category: 'SUV', doors: 4, seats: 5, available: true,
     description: 'SUV de luxo com motorizacao hibrida leve e pacote de assistencia de conducao.',
-    image: POOL.mclarenSilver,
+    // Reuso de foto Mercedes: melhor repetir a marca certa do que exibir outra marca.
+    image: POOL.amg,
   },
   {
     id: 'demo-audi-rs7', slug: 'audi-rs7-sportback', publicCode: 'AUD-001',
@@ -85,7 +85,8 @@ const seeds: Seed[] = [
     modelYear: 2022, manufactureYear: 2022, mileage: 7200, fuel: 'Gasolina', transmission: 'S tronic 7 marchas',
     category: 'Superesportivo', doors: 2, seats: 2, available: true,
     description: 'Superesportivo V10 aspirado de motor central, um dos ultimos da linhagem.',
-    image: POOL.mclarenSilver,
+    // Reuso de foto Audi: melhor repetir a marca certa do que exibir outra marca.
+    image: POOL.audi,
   },
   {
     id: 'demo-ferrari-roma', slug: 'ferrari-roma', publicCode: 'FER-001',

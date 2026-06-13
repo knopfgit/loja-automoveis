@@ -141,7 +141,7 @@ export function CatalogPage() {
           title="Filtre por marca"
           subtitle="Clique para selecionar (pode mais de uma). O estoque fica na cor da marca; juntando marcas, as cores se fundem."
         />
-        <form className="filter-bar" onSubmit={submit}>
+        <form className="filter-bar glass" onSubmit={submit}>
           <input name="model" placeholder="Modelo ou versao" defaultValue={formFilters.model} />
           <input name="priceMin" placeholder="Preco minimo" inputMode="numeric" defaultValue={formFilters.priceMin} />
           <input name="priceMax" placeholder="Preco maximo" inputMode="numeric" defaultValue={formFilters.priceMax} />
@@ -153,7 +153,7 @@ export function CatalogPage() {
             <option value="">Cambio</option>
             {transmissions.map((item) => <option key={item}>{item}</option>)}
           </select>
-          <button className="button button-dark" type="submit"><Search size={17} /> Filtrar</button>
+          <button className="button filter-bar-submit" type="submit"><Search size={17} /> Filtrar</button>
         </form>
       </section>
       <section className="section">

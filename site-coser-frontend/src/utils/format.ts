@@ -1,8 +1,10 @@
 const uploadBase = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api').replace('/api', '');
 
-export function formatCurrency(value?: number) {
-  if (typeof value !== 'number') return 'Consulte';
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+export function formatCurrency(value?: number | string | null) {
+  // APIs com Decimal podem serializar o valor como string numerica.
+  const amount = typeof value === 'string' ? Number(value) : value;
+  if (typeof amount !== 'number' || Number.isNaN(amount)) return 'Consulte';
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
 }
 
 export function formatDate(value?: string) {

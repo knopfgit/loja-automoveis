@@ -152,9 +152,11 @@ export function BrandSelector({
           <h2>{title}</h2>
           <p className="brand-selector-sub">{subtitle}</p>
         </div>
-        <span className="brand-selector-count">
-          {selected.length ? `${selected.length} marca${selected.length > 1 ? 's' : ''} selecionada${selected.length > 1 ? 's' : ''}` : 'Tema branco vidro'}
-        </span>
+        {selected.length > 0 && (
+          <span className="brand-selector-count">
+            {`${selected.length} marca${selected.length > 1 ? 's' : ''} selecionada${selected.length > 1 ? 's' : ''}`}
+          </span>
+        )}
       </div>
       {tiles}
       {actions}

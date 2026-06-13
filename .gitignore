@@ -47,3 +47,10 @@ Thumbs.db
 # Prisma
 prisma/*.db
 prisma/*.db-journal
+
+# Copia antiga de build (node_modules + dist duplicados) — nao versionar.
+# A pasta pode ser apagada do disco com seguranca; o backend real vive na raiz.
+/site-coser-main
+
+# Logs de ferramentas de execucao local
+/.codex-run

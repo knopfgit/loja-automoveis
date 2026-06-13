@@ -1,12 +1,15 @@
 # COSER Frontend
 
-Frontend React + TypeScript + Vite para consumir a API NestJS do projeto `site-coser-main`.
-O visual usa a base Vertex Motors em liquid glass, com fundo branco por padrao e tema black via toggle.
+Frontend React + TypeScript + Vite que consome a API NestJS deste repositório
+(backend na raiz do projeto). O visual usa liquid glass, com tema claro por
+padrão e tema escuro via toggle no cabeçalho.
 
 ## Requisitos
 
 - Node.js 20+
-- Backend rodando em `http://localhost:3000/api`
+- Backend rodando em `http://localhost:3000/api` (na raiz do repositório:
+  `npm run start:dev`). Sem backend, o catálogo usa veículos de demonstração
+  como fallback documentado (`src/features/public/demoVehicles.ts`).
 
 ## Como rodar
 
@@ -18,18 +21,21 @@ npm run dev
 
 A aplicação abre em `http://localhost:5173`.
 
-## Rodar unificado pelo backend
-
-Na pasta `site-coser-main`, rode:
+## Build de produção
 
 ```bash
-npm run build:all
-npm run start:prod
+npm run build     # gera dist/
+npm run preview   # serve o build localmente
 ```
 
-O backend passa a servir o frontend em `http://localhost:3000`, mantendo a API em `/api`, Swagger em `/docs` e uploads em `/uploads`.
+## Variáveis de ambiente
 
-## Credenciais de teste
+| Variável | Padrão | Uso |
+| --- | --- | --- |
+| `VITE_API_URL` | `http://localhost:3000/api` | URL base da API |
+| `VITE_REALTIME_URL` | `http://localhost:3000/realtime` | Socket.IO (painel interno) |
+
+## Credenciais de teste (seed do backend)
 
 - ADMIN: `admin@autodealer.local` / `Admin@123`
 - SELLER: `carlos@autodealer.local` / `Seller@123`
@@ -38,9 +44,9 @@ O backend passa a servir o frontend em `http://localhost:3000`, mantendo a API e
 ## O que foi implementado
 
 - Cliente Axios centralizado com envelope da API, mensagens de erro e refresh token em interceptor.
-- `accessToken` mantido em memoria; `refreshToken` mantido em `sessionStorage`.
-- RBAC na navegacao e nas rotas para ADMIN, SELLER e CUSTOMER.
-- Catalogo publico, detalhe do veiculo, contato via WhatsApp, localizacao da loja e consentimento LGPD.
-- Area do cliente: conta, favoritos, historico, privacidade/LGPD, compras e documentos.
-- Area interna: dashboard em tempo real, veiculos, funil comercial, comissoes, DRE, pecas, documentos, leads, notificacoes, relatorios e auditoria.
+- `accessToken` mantido em memória; `refreshToken` mantido em `sessionStorage`.
+- RBAC na navegação e nas rotas para ADMIN, SELLER e CUSTOMER.
+- Catálogo público, detalhe do veículo, contato via WhatsApp, localização da loja e consentimento LGPD.
+- Área do cliente: conta, favoritos, histórico, privacidade/LGPD, compras e documentos.
+- Área interna: dashboard em tempo real, veículos, funil comercial, comissões, DRE, peças, documentos, leads, notificações, relatórios e auditoria.
 - Socket.IO em `/realtime` assinando os eventos principais do backend.
