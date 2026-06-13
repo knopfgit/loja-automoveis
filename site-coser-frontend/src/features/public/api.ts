@@ -56,8 +56,19 @@ export function getStoreLocation() {
   return unwrap<StoreLocation>(api.get('/public/store/location'));
 }
 
-export function specialistContact(input: { vehicleId: string; name: string; phone: string }) {
-  return unwrap<{ leadId: string; whatsappUrl: string; status: string }>(api.post('/public/leads/specialist-contact', input));
+export type SpecialistContactInput = {
+  vehicleId?: string;
+  name: string;
+  phone: string;
+  email?: string;
+  sourcePage?: string;
+  message?: string;
+};
+
+export function specialistContact(input: SpecialistContactInput) {
+  return unwrap<{ leadId: string; whatsappUrl: string | null; status: string }>(
+    api.post('/public/leads/specialist-contact', input),
+  );
 }
 
 export function trackVehicleView(vehicleId: string) {

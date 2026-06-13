@@ -1,6 +1,6 @@
 :root {
   color-scheme: light;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Nunito", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --ink: #0f1622;
@@ -12,6 +12,7 @@
   --wash-a: #d8ecff;
   --wash-b: #76b9ff;
   --wash-c: #574cff;
+  --vehicle-brand: var(--brand);
   --vehicle-tone: var(--brand);
   --vehicle-neon-a: var(--neon-a);
   --vehicle-neon-b: var(--neon-b);
@@ -133,6 +134,13 @@ th {
   animation: auroraDrift 20s ease-in-out infinite alternate;
 }
 
+/* Tema escuro: aurora mais discreta — as manchas claras por tras do vidro
+   lavavam o texto claro. */
+:root[data-theme="dark"] .aurora {
+  opacity: 0.34;
+  filter: blur(80px) saturate(120%) brightness(0.7);
+}
+
 .grain {
   position: fixed;
   inset: 0;
@@ -168,17 +176,52 @@ th {
   overflow: hidden;
 }
 
+/* Tema escuro: vidro fumê (tinta escura, nao filme branco) para o texto claro
+   ler bem mesmo com a aurora colorida por tras. */
 :root[data-theme="dark"] .glass,
 :root[data-theme="dark"] .section,
-:root[data-theme="dark"] .vehicle-card,
+/* Cards de vitrine (vehicle-card-landing) sao superficies CLARAS com tinta
+   escura fixa — ficam fora do vidro fume. */
+:root[data-theme="dark"] .vehicle-card:not(.vehicle-card-landing),
 :root[data-theme="dark"] .auth-panel,
 :root[data-theme="dark"] .mini-panel,
 :root[data-theme="dark"] .metric,
 :root[data-theme="dark"] .detail-panel,
 :root[data-theme="dark"] .map-panel,
 :root[data-theme="dark"] .glass-soft {
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.05) 46%, rgba(255, 255, 255, 0.08));
+  background: linear-gradient(150deg, rgba(13, 19, 29, 0.66), rgba(13, 19, 29, 0.44) 46%, rgba(15, 22, 34, 0.56));
   box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* As fichas/cards de veiculo usam fundo CLARO de vidro nos DOIS temas. Por isso o
+   texto interno precisa ser sempre escuro — caso contrario, no tema escuro o --ink
+   inverte para claro e some no fundo claro. Redefinimos --ink/--muted e fixamos a
+   cor base localmente para garantir legibilidade em qualquer tema e cor de marca. */
+.vehicle-card-landing,
+.vehicle-spec-sheet,
+.brand-stock-card,
+.brand-chip {
+  --ink: #16202e;
+  --muted: #586374;
+  color: #16202e;
+}
+
+/* O card pode ser um <button> e a regra "button.vehicle-card-button { color: inherit }"
+   e mais especifica que a de cima — reafirmamos a tinta escura para nao herdar
+   a cor clara do tema escuro. */
+button.vehicle-card-button.vehicle-card-landing {
+  color: #16202e;
+}
+
+/* No tema escuro, o filme branco translucido dessas superficies claras vira
+   cinza medio sobre a pagina escura e o texto perde contraste. Uma base branca
+   solida por baixo das camadas (background-color fica SOB os gradientes e
+   aquarelas) garante a leitura sem alterar o estilo. */
+:root[data-theme="dark"] .vehicle-card-landing,
+:root[data-theme="dark"] .vehicle-spec-sheet,
+:root[data-theme="dark"] .brand-stock-card,
+:root[data-theme="dark"] .brand-chip {
+  background-color: rgba(255, 255, 255, 0.86);
 }
 
 .glass::before,
@@ -209,6 +252,19 @@ th {
   animation: glint 9s ease-in-out infinite;
 }
 
+/* Tema escuro: reflexos brancos bem mais suaves para nao clarear o vidro fume. */
+:root[data-theme="dark"] .glass::before,
+:root[data-theme="dark"] .section::before,
+:root[data-theme="dark"] .glass-soft::before {
+  background: linear-gradient(177deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0) 82%, rgba(255, 255, 255, 0.04) 100%);
+}
+
+:root[data-theme="dark"] .glass::after,
+:root[data-theme="dark"] .section::after,
+:root[data-theme="dark"] .glass-soft::after {
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+
 .header {
   position: fixed;
   top: 16px;
@@ -233,16 +289,54 @@ th {
   z-index: 4;
 }
 
+/* Logo COSER usada como imagem real (arquivo intacto, sem alteracao). */
+.brand-lockup-img {
+  gap: 0;
+}
+
+.brand-logo-img {
+  height: clamp(40px, 4.4vw, 52px);
+  width: auto;
+  max-width: 220px;
+  display: block;
+  object-fit: contain;
+}
+
 .brand-mark {
-  width: 38px;
-  height: 38px;
+  position: relative;
+  width: 42px;
+  height: 42px;
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: linear-gradient(145deg, #1c2533, #0c1119);
-  color: #fff;
-  font-weight: 900;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 16px rgba(15, 23, 42, 0.3);
+  isolation: isolate;
+}
+
+/* Brilho dourado da logo difundido atras do icone. */
+.brand-mark::before {
+  content: "";
+  position: absolute;
+  inset: -32%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(246, 210, 113, 0.62), rgba(201, 152, 47, 0.22) 52%, transparent 72%);
+  filter: blur(6px);
+}
+
+.brand-mark-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 50%;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.34), inset 0 0 0 1px rgba(246, 210, 113, 0.28);
+}
+
+.brand-lockup strong {
+  background: linear-gradient(92deg, #c9982f 0%, #f6d271 48%, #b9852a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #c9982f;
 }
 
 .brand-lockup strong,
@@ -334,8 +428,9 @@ th {
   gap: 10px;
   padding: 0 13px;
   border-radius: 999px;
-  color: var(--muted);
-  font-weight: 760;
+  /* Tinta cheia (nao muted): o vidro deixa vazar o fundo colorido e o cinza some. */
+  color: var(--ink);
+  font-weight: 800;
   transition: background 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
@@ -399,7 +494,9 @@ th {
   background: rgba(255, 255, 255, 0.42);
   border: 1px solid rgba(255, 255, 255, 0.7);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  color: color-mix(in srgb, var(--brand) 72%, var(--ink));
+  /* Pill clara em ambos os temas: base escura fixa com toque da marca,
+     legivel mesmo com marcas de cor clara (prata/cinza). */
+  color: color-mix(in srgb, var(--brand) 40%, #16202e);
   font-size: 0.68rem;
   font-weight: 850;
   letter-spacing: 0.16em;
@@ -1092,9 +1189,55 @@ th {
   transform: translateY(-2px);
 }
 
+/* Feedback de clique padronizado: leve "press" na mesma linguagem das transições. */
+.button:active,
+.icon-button:active {
+  transform: translateY(0) scale(0.94);
+  transition-duration: 90ms;
+}
+
+/* Hamburguer com menu aberto: estado pressionado consistente com o glass. */
+.icon-button[aria-expanded='true'] {
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: inset 0 2px 6px rgba(15, 23, 42, 0.14);
+}
+
 .button-danger {
   color: #fff;
   background: linear-gradient(145deg, #d33125, #9d1f18);
+}
+
+/* CTA principal da Home: "Ver todos modelos" — maior e com gradiente colorido animado. */
+.cta-all-models {
+  min-height: 54px;
+  padding: 0 34px;
+  color: #fff;
+  font-size: 1.04rem;
+  font-weight: 880;
+  letter-spacing: 0.01em;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  background: linear-gradient(110deg, #1266d8 0%, #6d5dfc 44%, #16b6f0 78%, #1266d8 100%);
+  background-size: 220% 100%;
+  box-shadow:
+    0 18px 42px rgba(33, 96, 220, 0.46),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  animation: ctaSheen 6s ease-in-out infinite;
+}
+
+.cta-all-models:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 26px 56px rgba(33, 96, 220, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+@keyframes ctaSheen {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-all-models { animation: none; }
 }
 
 .icon-button {
@@ -1385,9 +1528,10 @@ button.vehicle-card-button {
   align-items: center;
   padding: 0 10px;
   border-radius: 999px;
-  color: color-mix(in srgb, var(--vehicle-tone) 74%, var(--ink));
-  background: rgba(255, 255, 255, 0.42);
-  border: 1px solid color-mix(in srgb, var(--vehicle-tone) 20%, rgba(255, 255, 255, 0.7));
+  /* Mistura mais escura para que marcas claras (cinza/prata) tambem fiquem legiveis. */
+  color: color-mix(in srgb, var(--vehicle-brand, var(--vehicle-tone)) 46%, var(--ink));
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid color-mix(in srgb, var(--vehicle-brand, var(--vehicle-tone)) 32%, rgba(20, 28, 40, 0.16));
   font-size: 0.66rem;
   font-weight: 900;
   letter-spacing: 0.12em;
@@ -1413,6 +1557,34 @@ button.vehicle-card-button {
   -webkit-line-clamp: 2;
 }
 
+.vehicle-landing-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.vehicle-landing-facts > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  /* Texto SEMPRE escuro + pilula opaca: contraste proprio, legivel em qualquer marca/tema. */
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid color-mix(in srgb, var(--vehicle-brand, var(--vehicle-tone)) 28%, rgba(20, 28, 40, 0.14));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  font-size: 0.8rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.vehicle-landing-facts svg {
+  color: color-mix(in srgb, var(--vehicle-brand, var(--vehicle-tone)) 56%, var(--ink));
+}
+
 .vehicle-landing-footer {
   display: flex;
   align-items: center;
@@ -1426,13 +1598,20 @@ button.vehicle-card-button {
   font-size: clamp(1.15rem, 1.5vw, 1.38rem);
 }
 
+/* Preco: marca como leve tom, base sempre escura (legivel em qualquer marca/tema). */
+.vehicle-card-landing .price,
+.vehicle-spec-sheet .price {
+  color: color-mix(in srgb, var(--vehicle-brand, var(--vehicle-tone)) 28%, var(--ink));
+}
+
 .vehicle-landing-footer > span {
   min-height: 34px;
   display: inline-flex;
   align-items: center;
   padding: 0 12px;
   border-radius: 999px;
-  color: color-mix(in srgb, var(--vehicle-tone) 82%, var(--ink));
+  /* Tinta dominante: tons claros (branco/prata) e escuros continuam legiveis. */
+  color: color-mix(in srgb, var(--vehicle-tone) 42%, var(--ink));
   background: rgba(255, 255, 255, 0.38);
   border: 1px solid rgba(255, 255, 255, 0.68);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
@@ -1605,7 +1784,7 @@ button.vehicle-card-button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: color-mix(in srgb, var(--vehicle-tone) 64%, var(--muted));
+  color: color-mix(in srgb, var(--vehicle-tone) 32%, var(--muted));
 }
 
 .vehicle-spec-list dd {
@@ -1691,7 +1870,8 @@ button.vehicle-card-button {
   margin-top: 10px;
   padding: 0 10px;
   border-radius: 999px;
-  color: color-mix(in srgb, var(--vehicle-tone) 74%, var(--ink));
+  /* Fundo do chip e sempre claro: texto fixo escuro com leve tom do veiculo. */
+  color: color-mix(in srgb, var(--vehicle-tone) 40%, #16202e);
   background: color-mix(in srgb, var(--vehicle-wash-a) 72%, rgba(255, 255, 255, 0.46));
   border: 1px solid color-mix(in srgb, var(--vehicle-tone) 22%, rgba(255, 255, 255, 0.72));
   font-size: 0.72rem;
@@ -1701,7 +1881,9 @@ button.vehicle-card-button {
 .price {
   display: block;
   margin: 14px 0;
-  color: color-mix(in srgb, var(--vehicle-tone) 82%, var(--ink));
+  /* Tinta dominante com toque da cor do veiculo: preco legivel em qualquer
+     combinacao de tema (claro/escuro) e cor do carro (branco a preto). */
+  color: color-mix(in srgb, var(--vehicle-tone) 30%, var(--ink));
   font-size: 1.25rem;
 }
 
@@ -1734,8 +1916,58 @@ button.vehicle-card-button {
 
 .filter-bar {
   display: grid;
-  grid-template-columns: repeat(6, minmax(130px, 1fr)) auto;
-  gap: 10px;
+  grid-template-columns: repeat(5, minmax(130px, 1fr)) minmax(170px, auto);
+  gap: 12px;
+  align-items: center;
+  padding: clamp(14px, 1.6vw, 20px);
+  border-radius: 26px;
+}
+
+/* Campos com o mesmo acabamento de vidro dos chips de marca acima. */
+.filter-bar input,
+.filter-bar select {
+  min-height: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  color: var(--ink);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.42));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 10px 22px rgba(15, 23, 42, 0.06);
+  font-weight: 650;
+}
+
+.filter-bar input::placeholder {
+  color: color-mix(in srgb, var(--ink) 62%, transparent);
+  font-weight: 600;
+}
+
+.filter-bar input:focus,
+.filter-bar select:focus {
+  border-color: color-mix(in srgb, var(--brand) 52%, rgba(255, 255, 255, 0.7));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent);
+}
+
+/* Botao Filtrar sempre escuro e em destaque, tingido pela marca ativa. */
+.filter-bar-submit {
+  min-height: 50px;
+  padding: 0 28px;
+  color: #fff;
+  border-color: color-mix(in srgb, var(--brand) 56%, #16202e);
+  background:
+    linear-gradient(150deg, color-mix(in srgb, var(--brand) 46%, #1a2638), color-mix(in srgb, var(--brand) 24%, #0c1424));
+  box-shadow:
+    0 18px 38px color-mix(in srgb, var(--brand) 36%, rgba(15, 23, 42, 0.28)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  font-weight: 880;
+  letter-spacing: 0.02em;
+}
+
+.filter-bar-submit:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 24px 50px color-mix(in srgb, var(--brand) 44%, rgba(15, 23, 42, 0.3)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .detail-layout {
@@ -1850,6 +2082,26 @@ dd {
 
 .lead-form {
   margin-top: 16px;
+}
+
+.form-feedback {
+  margin: 2px 0 0;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.form-feedback-error {
+  color: #7f1d1d;
+  background: rgba(248, 215, 218, 0.85);
+  border: 1px solid rgba(220, 53, 69, 0.35);
+}
+
+.form-feedback-ok {
+  color: #14532d;
+  background: rgba(209, 250, 229, 0.85);
+  border: 1px solid rgba(22, 120, 77, 0.35);
 }
 
 .spec-list {
@@ -2048,6 +2300,31 @@ dd {
 
 .mobile-only {
   display: none;
+}
+
+/* Gaveta de navegação do visitante: só existe no mobile (a navegação
+   desktop fica no topo). O scrim fecha o menu ao tocar fora. */
+.sidebar-public,
+.sidebar-scrim {
+  display: none;
+}
+
+.sidebar-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  background: color-mix(in srgb, var(--ink) 24%, transparent);
+  backdrop-filter: blur(2px);
+  animation: scrimFade 200ms ease;
+}
+
+@keyframes scrimFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-scrim { animation: none; }
 }
 
 /* ===================================================================
@@ -2623,7 +2900,7 @@ tbody tr:hover {
   }
 
   .filter-bar {
-    grid-template-columns: repeat(6, minmax(150px, 1fr)) auto;
+    grid-template-columns: repeat(5, minmax(150px, 1fr)) minmax(190px, auto);
   }
 }
 
@@ -2695,6 +2972,27 @@ tbody tr:hover {
 
   .sidebar.open {
     transform: translateX(0);
+  }
+
+  /* No mobile o vidro da gaveta fica mais opaco: o blur sozinho deixa o fundo
+     colorido vazar e as letras perdem destaque. */
+  .sidebar {
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.88));
+  }
+
+  :root[data-theme="dark"] .sidebar {
+    background: linear-gradient(150deg, rgba(13, 19, 29, 0.95), rgba(16, 24, 38, 0.9));
+  }
+
+  .sidebar-public {
+    display: block;
+    bottom: auto;
+    max-height: calc(100vh - 120px);
+    padding: 14px;
+  }
+
+  .sidebar-scrim {
+    display: block;
   }
 
   .hero,
@@ -2969,23 +3267,6 @@ tbody tr:hover {
 
   .cookie-banner {
     align-items: stretch;
-  }
-}
-
-/* Estoque: vitrine de cards grandes com foto priorizada (formato showroom) */
-.stock-showcase-grid {
-  grid-template-columns: repeat(auto-fill, minmax(clamp(300px, 30vw, 400px), 1fr));
-  gap: clamp(20px, 2.4vw, 32px);
-}
-
-.stock-showcase-grid .vehicle-image-landing {
-  aspect-ratio: 1.5 / 1;
-}
-
-@media (max-width: 640px) {
-  .stock-showcase-grid {
-    grid-template-columns: 1fr;
-    gap: 18px;
   }
 }
 
@@ -3532,28 +3813,124 @@ html {
   .brand-hero-grid { grid-template-columns: 1fr 1fr; }
 }
 
-/* === Estoque: cards ainda maiores e mais separados === */
+/* === Estoque: 1 veiculo por linha — foto grande de um lado, especificacao do outro === */
 .stock-showcase-grid {
-  grid-template-columns: repeat(auto-fill, minmax(clamp(340px, 33vw, 460px), 1fr));
-  gap: clamp(26px, 3.2vw, 46px);
+  grid-template-columns: 1fr;
+  gap: clamp(24px, 2.8vw, 40px);
+}
+
+.stock-showcase-grid .vehicle-card-landing {
+  grid-template-rows: none;
+  grid-template-columns: minmax(0, 1.16fr) minmax(0, 0.84fr);
+  align-items: stretch;
+  /* Altura FIXA: todos os cards iguais, nao importa o tamanho da foto. */
+  height: clamp(330px, 30vw, 420px);
+  border-radius: 32px;
+  /* Moldura SEMPRE na cor da marca (--vehicle-brand), bem mais presente que no card padrao. */
+  border-color: color-mix(in srgb, var(--vehicle-brand) 52%, rgba(255, 255, 255, 0.5));
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.14) 46%, rgba(255, 255, 255, 0.26)),
+    radial-gradient(98% 88% at 86% 0%, color-mix(in srgb, var(--vehicle-brand) 28%, transparent), transparent 74%),
+    radial-gradient(88% 92% at 2% 100%, color-mix(in srgb, var(--vehicle-wash-c) 60%, transparent), transparent 78%);
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, var(--vehicle-brand) 34%, transparent),
+    0 30px 70px color-mix(in srgb, var(--vehicle-brand) 26%, rgba(15, 23, 42, 0.16)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.stock-showcase-grid .vehicle-card-landing:hover {
+  border-color: color-mix(in srgb, var(--vehicle-brand) 68%, rgba(255, 255, 255, 0.45));
+  box-shadow:
+    0 0 0 2.5px color-mix(in srgb, var(--vehicle-brand) 42%, transparent),
+    0 38px 84px color-mix(in srgb, var(--vehicle-brand) 34%, rgba(15, 23, 42, 0.18)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
 }
 
 .stock-showcase-grid .vehicle-image-landing {
-  aspect-ratio: 1.6 / 1;
+  margin: clamp(14px, 1.6vw, 20px) 0 clamp(14px, 1.6vw, 20px) clamp(14px, 1.6vw, 20px);
+  /* Preenche toda a altura fixa do card; a foto e cortada (cover), nunca estica o card. */
+  aspect-ratio: auto;
+  min-height: 0;
+  height: auto;
+  border-radius: 26px;
+  border-color: color-mix(in srgb, var(--vehicle-tone) 36%, rgba(255, 255, 255, 0.5));
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.04)),
+    radial-gradient(84% 84% at 74% 8%, color-mix(in srgb, var(--vehicle-wash-b) 94%, transparent), transparent 76%),
+    radial-gradient(78% 76% at 12% 98%, color-mix(in srgb, var(--vehicle-wash-c) 76%, transparent), transparent 78%),
+    radial-gradient(54% 52% at 50% 54%, color-mix(in srgb, var(--vehicle-wash-a) 84%, transparent), transparent 80%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 0 0 1px color-mix(in srgb, var(--vehicle-tone) 14%, transparent),
+    0 24px 54px color-mix(in srgb, var(--vehicle-tone) 30%, transparent);
 }
 
-.stock-showcase-grid .vehicle-landing-title {
-  font-size: clamp(1.5rem, 2.1vw, 2.05rem);
+.stock-showcase-grid .vehicle-image-halo {
+  inset: 4%;
+  filter: blur(22px) saturate(150%);
+  background:
+    radial-gradient(60% 56% at 50% 48%, color-mix(in srgb, var(--vehicle-wash-a) 74%, transparent), transparent 74%),
+    radial-gradient(76% 68% at 72% 22%, color-mix(in srgb, var(--vehicle-neon-b) 40%, transparent), transparent 78%);
+}
+
+.stock-showcase-grid .vehicle-tone-strip {
+  width: 96px;
+  height: 5px;
+  background: linear-gradient(90deg, var(--vehicle-brand), color-mix(in srgb, var(--vehicle-brand) 40%, #fff));
+  box-shadow: 0 0 18px color-mix(in srgb, var(--vehicle-brand) 52%, transparent);
+}
+
+.stock-showcase-grid .vehicle-brand-label {
+  color: color-mix(in srgb, var(--vehicle-brand) 46%, var(--ink));
+  border-color: color-mix(in srgb, var(--vehicle-brand) 38%, rgba(20, 28, 40, 0.16));
+  background: color-mix(in srgb, var(--vehicle-brand) 8%, rgba(255, 255, 255, 0.86));
+}
+
+.stock-showcase-grid .vehicle-image-landing {
+  border-color: color-mix(in srgb, var(--vehicle-brand) 40%, rgba(255, 255, 255, 0.5));
 }
 
 .stock-showcase-grid .vehicle-landing-body {
-  padding: 20px 22px 22px;
+  align-content: center;
+  gap: 10px;
+  padding: clamp(22px, 2.8vw, 44px);
 }
 
-@media (max-width: 640px) {
+.stock-showcase-grid .vehicle-landing-title {
+  font-size: clamp(1.8rem, 2.8vw, 2.6rem);
+}
+
+.stock-showcase-grid .vehicle-landing-version {
+  min-height: 0;
+  font-size: 1rem;
+}
+
+.stock-showcase-grid .vehicle-landing-facts > span {
+  min-height: 36px;
+  font-size: 0.86rem;
+}
+
+.stock-showcase-grid .vehicle-landing-footer .price {
+  font-size: clamp(1.5rem, 2vw, 1.9rem);
+}
+
+@media (max-width: 940px) {
   .stock-showcase-grid {
-    grid-template-columns: 1fr;
     gap: 20px;
+  }
+
+  .stock-showcase-grid .vehicle-card-landing {
+    grid-template-columns: 1fr;
+  }
+
+  .stock-showcase-grid .vehicle-image-landing {
+    margin: 14px 14px 0;
+    min-height: 0;
+    aspect-ratio: 1.45 / 1;
+  }
+
+  .stock-showcase-grid .vehicle-landing-body {
+    padding: 18px 20px 22px;
   }
 }
 
@@ -3613,18 +3990,89 @@ html {
   align-content: start;
 }
 
-.vehicle-spec-thumbs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(54px, 1fr));
-  gap: 8px;
+/* Foto principal da ficha: maior, com zoom suave ao trocar de angulo. */
+.vehicle-spec-media {
+  min-height: clamp(220px, 22vw, 320px);
 }
 
-.vehicle-spec-thumbs img {
-  width: 100%;
+.vehicle-spec-media img {
+  transition: transform 360ms cubic-bezier(0.2, 0.7, 0.2, 1), object-position 360ms ease, filter 360ms ease;
+}
+
+.vehicle-spec-media-tag {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 2;
+  padding: 5px 12px;
+  border-radius: 999px;
+  color: #fff;
+  background: color-mix(in srgb, var(--vehicle-brand, var(--vehicle-tone)) 62%, rgba(10, 14, 22, 0.72));
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 6px 16px rgba(8, 12, 20, 0.32);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  backdrop-filter: blur(6px);
+}
+
+/* Galeria de angulos clicaveis — preenche o espaco sob a foto principal. */
+.vehicle-spec-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  gap: 10px;
+}
+
+.vehicle-spec-shot {
+  position: relative;
   aspect-ratio: 4 / 3;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--vehicle-brand, var(--vehicle-tone)) 24%, rgba(255, 255, 255, 0.6));
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.vehicle-spec-shot img {
+  width: 100%;
+  height: 100%;
+  display: block;
   object-fit: cover;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.62);
+}
+
+.vehicle-spec-shot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 52%, rgba(8, 12, 20, 0.46) 100%);
+}
+
+.vehicle-spec-shot-label {
+  position: absolute;
+  left: 7px;
+  bottom: 6px;
+  z-index: 1;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.vehicle-spec-shot:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--vehicle-brand, var(--vehicle-tone)) 46%, rgba(255, 255, 255, 0.5));
+}
+
+.vehicle-spec-shot.is-active {
+  border-color: var(--vehicle-brand, var(--vehicle-tone));
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--vehicle-brand, var(--vehicle-tone)) 42%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .vehicle-spec-info {
@@ -3762,7 +4210,8 @@ html {
   z-index: 2;
   padding: 6px 13px;
   border-radius: 999px;
-  color: color-mix(in srgb, var(--vehicle-tone) 80%, var(--ink));
+  /* Pill branca em ambos os temas: texto fixo escuro com leve tom do veiculo. */
+  color: color-mix(in srgb, var(--vehicle-tone) 38%, #16202e);
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid color-mix(in srgb, var(--vehicle-tone) 24%, rgba(255, 255, 255, 0.7));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);

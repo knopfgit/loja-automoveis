@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /interno/
+Disallow: /cliente/
+Disallow: /login
+Disallow: /cadastro
+Disallow: /recuperar-senha
