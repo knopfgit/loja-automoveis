@@ -17,8 +17,10 @@ const profiles: BrandProfile[] = [
   { name: 'BMW', slug: 'bmw', color: '#1266d8', neonA: '#1266d8', neonB: '#67e8f9', neonC: '#6d5dfc', washA: '#d8ecff', washB: '#76b9ff', washC: '#574cff' },
   { name: 'Porsche', slug: 'porsche', color: '#a70f16', neonA: '#a70f16', neonB: '#ff6b75', neonC: '#d7b75b', washA: '#ffe5dc', washB: '#ff8b7a', washC: '#d7b75b' },
   { name: 'Mercedes-Benz', slug: 'mercedes', color: '#6f7885', neonA: '#6f7885', neonB: '#d7dde7', neonC: '#9fe8ff', washA: '#eef4f8', washB: '#aeb8c4', washC: '#d8f5ff' },
-  { name: 'Audi', slug: 'audi', color: '#b8141f', neonA: '#b8141f', neonB: '#ff6b75', neonC: '#9ca3af', washA: '#ffe1e3', washB: '#ff7f88', washC: '#ced4dd' },
-  { name: 'Ferrari', slug: 'ferrari', color: '#dd1f2d', neonA: '#dd1f2d', neonB: '#ffd43b', neonC: '#22c55e', washA: '#ffdedf', washB: '#ff7b6e', washC: '#ffe777' },
+  { name: 'Audi', slug: 'audi', color: '#3b424b', neonA: '#3b424b', neonB: '#eef2f6', neonC: '#aab3bf', washA: '#f1f4f7', washB: '#c6cdd6', washC: '#e3e8ee' },
+  // Ferrari: paleta do scudetto — vermelho, amarelo Modena, verde e branco da bandeira.
+  // O preto do cavallino fica por conta da tinta dos textos/ícones sobre as aquarelas.
+  { name: 'Ferrari', slug: 'ferrari', color: '#dd1f2d', neonA: '#dd1f2d', neonB: '#ffd21e', neonC: '#009246', washA: '#fffbea', washB: '#ffe35c', washC: '#9fdfb4' },
   { name: 'Lamborghini', slug: 'lamborghini', color: '#c89b07', neonA: '#c89b07', neonB: '#fff45f', neonC: '#a3e635', washA: '#fff4bc', washB: '#f3cf54', washC: '#d8ff8d' },
   { name: 'Volkswagen', slug: 'volkswagen', color: '#195a9b', neonA: '#195a9b', neonB: '#8fd3ff', neonC: '#6aa5ff', washA: '#e1f2ff', washB: '#8ec9ff', washC: '#6f8cff' },
   { name: 'Chevrolet', slug: 'chevrolet', color: '#b88308', neonA: '#b88308', neonB: '#ffd36c', neonC: '#f59e0b', washA: '#fff0c9', washB: '#f7c35d', washC: '#ffd58a' },
@@ -93,7 +95,10 @@ export function profileForVehicle(vehicle?: Pick<Vehicle, 'brand' | 'color'>): B
 
 export function themeVarsForVehicle(vehicle?: Pick<Vehicle, 'brand' | 'color'>): CSSProperties {
   const profile = profileForVehicle(vehicle);
+  const brand = getBrandProfile(vehicle?.brand);
   return {
+    // Cor SEMPRE da marca (nao muda com a pintura do carro) — usada na moldura/identidade.
+    '--vehicle-brand': brand.color,
     '--vehicle-tone': profile.color,
     '--vehicle-neon-a': profile.neonA,
     '--vehicle-neon-b': profile.neonB,

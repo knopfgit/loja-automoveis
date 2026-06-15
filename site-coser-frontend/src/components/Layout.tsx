@@ -1,6 +1,7 @@
-import { Bell, LogOut, Menu, Moon, Sun } from 'lucide-react';
+import { Bell, LogOut, Menu, Moon, Sun, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { BrandLockup } from './BrandLockup';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../features/auth/AuthProvider';
 import { customerNav, type NavGroup, type NavItem, publicNav, staffNav } from '../nav';
@@ -49,6 +50,15 @@ export function Layout() {
     localStorage.setItem('coser.theme', theme);
   }, [theme]);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
+
   async function handleLogout() {
     await logout();
     navigate('/');
@@ -61,13 +71,7 @@ export function Layout() {
       <div className="aurora" aria-hidden="true" />
       <div className="grain" aria-hidden="true" />
       <header className="header glass">
-        <Link to="/" className="brand-lockup" aria-label="COSER Motors">
-          <span className="brand-mark">C</span>
-          <span>
-            <strong>COSER</strong>
-            <small>Motors</small>
-          </span>
-        </Link>
+        <BrandLockup />
         <nav className="main-nav" aria-label="Navegação principal">
           {publicNav.map((link) => (
             <NavLink key={link.to} to={link.to} end={link.to === '/'}>
@@ -75,8 +79,15 @@ export function Layout() {
             </NavLink>
           ))}
         </nav>
-        <button className="icon-button mobile-only" type="button" onClick={() => setOpen((value) => !value)} aria-label="Abrir menu">
-          <Menu size={21} />
+        <button
+          className="icon-button mobile-only"
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          aria-label={open ? 'Fechar menu' : 'Abrir menu'}
+          aria-expanded={open}
+          aria-controls="mobile-sidebar"
+        >
+          {open ? <X size={21} /> : <Menu size={21} />}
         </button>
         <nav className="header-actions">
           <button
@@ -114,26 +125,28 @@ export function Layout() {
         </nav>
       </header>
 
-      {user && (
-        <aside className={`sidebar glass ${open ? 'open' : ''}`}>
-          <div className="sidebar-scroll">
-            {user.role !== 'CUSTOMER' && (
-              <div className="role-tag">
-                <small>Painel</small>
-                <strong>{roleLabel}</strong>
-              </div>
-            )}
-            {visibleGroups.map((group, index) => (
-              <div className="nav-group" key={group.label ?? index}>
-                {group.label && <span className="nav-group-label">{group.label}</span>}
-                {group.items.map((link) => (
-                  <SidebarLink key={link.to} item={link} unread={unread} onClick={() => setOpen(false)} />
-                ))}
-              </div>
-            ))}
-          </div>
-        </aside>
-      )}
+      {open && <div className="sidebar-scrim" onClick={() => setOpen(false)} aria-hidden="true" />}
+
+      {/* Para visitantes a gaveta existe apenas no mobile (classe sidebar-public);
+          logado, ela é a navegação lateral padrão. */}
+      <aside id="mobile-sidebar" className={`sidebar glass ${user ? '' : 'sidebar-public'} ${open ? 'open' : ''}`}>
+        <div className="sidebar-scroll">
+          {user && user.role !== 'CUSTOMER' && (
+            <div className="role-tag">
+              <small>Painel</small>
+              <strong>{roleLabel}</strong>
+            </div>
+          )}
+          {visibleGroups.map((group, index) => (
+            <div className="nav-group" key={group.label ?? index}>
+              {group.label && <span className="nav-group-label">{group.label}</span>}
+              {group.items.map((link) => (
+                <SidebarLink key={link.to} item={link} unread={unread} onClick={() => setOpen(false)} />
+              ))}
+            </div>
+          ))}
+        </div>
+      </aside>
 
       <main className={`main ${user ? '' : 'main-full'}`}>
         <Outlet />

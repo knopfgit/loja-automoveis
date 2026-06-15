@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar, Car, Fuel, Gauge, Hash, Palette, Settings2, Users, DoorOpen, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Vehicle } from '../types';
@@ -17,9 +19,28 @@ function display(value: unknown, fallback = 'Nao informado') {
   return String(value);
 }
 
+// Quando o veiculo tem so 1 foto, montamos "angulos" a partir dela (recortes em zoom)
+// para a galeria nao ficar vazia. Com varias fotos reais, usamos as fotos.
+const detailFrames = [
+  { label: 'Visao geral', position: '50% 50%', zoom: 1 },
+  { label: 'Frontal', position: '74% 58%', zoom: 1.55 },
+  { label: 'Traseira', position: '24% 60%', zoom: 1.55 },
+  { label: 'Rodas', position: '50% 86%', zoom: 1.9 },
+];
+
 export function VehicleSpecPanel({ vehicle, href, onClose }: VehicleSpecPanelProps) {
   const images = vehicle.media?.length ? vehicle.media : [];
   const mainImage = images.find((item) => item.isMain)?.url ?? images[0]?.url;
+  const sortedImages = mainImage
+    ? [mainImage, ...images.map((item) => item.url).filter((url) => url !== mainImage)]
+    : images.map((item) => item.url);
+  const shots = sortedImages.length > 1
+    ? sortedImages.slice(0, 5).map((url, index) => ({ src: imageUrl(url), label: `Foto ${index + 1}`, position: '50% 50%', zoom: 1 }))
+    : mainImage
+      ? detailFrames.map((frame) => ({ src: imageUrl(mainImage), ...frame }))
+      : [];
+  const [activeShot, setActiveShot] = useState(0);
+  const active = shots[activeShot] ?? shots[0];
   const specItems = [
     { label: 'Ano modelo', value: vehicle.modelYear, icon: Calendar },
     { label: 'Fabricacao', value: vehicle.manufactureYear, icon: Calendar },
@@ -33,7 +54,16 @@ export function VehicleSpecPanel({ vehicle, href, onClose }: VehicleSpecPanelPro
   ];
   const extraSpecs = Object.entries(vehicle.spec ?? {}).slice(0, 4);
 
-  return (
+  // Trava o scroll do body enquanto o modal esta aberto.
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, []);
+
+  return createPortal(
     <aside
       className="vehicle-spec-panel"
       style={themeVarsForVehicle(vehicle)}
@@ -50,16 +80,35 @@ export function VehicleSpecPanel({ vehicle, href, onClose }: VehicleSpecPanelPro
         <div className="vehicle-spec-visual">
           <div className="vehicle-spec-media">
             <span className="vehicle-spec-orb" />
-            {mainImage ? (
-              <img src={imageUrl(mainImage)} alt={`${vehicle.brand} ${vehicle.model}`} />
+            {active ? (
+              <img
+                src={active.src}
+                alt={`${vehicle.brand} ${vehicle.model}`}
+                style={{ objectPosition: active.position, transform: `scale(${active.zoom})`, transformOrigin: active.position }}
+              />
             ) : (
               <span className="vehicle-placeholder">{vehicle.brand?.slice(0, 1)}{vehicle.model?.slice(0, 1)}</span>
             )}
+            <span className="vehicle-spec-media-tag">{active?.label ?? vehicle.brand}</span>
           </div>
-          {images.length > 1 && (
-            <div className="vehicle-spec-thumbs">
-              {images.slice(0, 5).map((media) => (
-                <img key={media.id ?? media.url} src={imageUrl(media.url)} alt="" />
+          {shots.length > 1 && (
+            <div className="vehicle-spec-gallery">
+              {shots.map((shot, index) => (
+                <button
+                  key={`${shot.src}-${index}`}
+                  type="button"
+                  className={`vehicle-spec-shot ${index === activeShot ? 'is-active' : ''}`}
+                  onClick={() => setActiveShot(index)}
+                  aria-label={shot.label}
+                  aria-pressed={index === activeShot}
+                >
+                  <img
+                    src={shot.src}
+                    alt=""
+                    style={{ objectPosition: shot.position, transform: `scale(${shot.zoom})`, transformOrigin: shot.position }}
+                  />
+                  <span className="vehicle-spec-shot-label">{shot.label}</span>
+                </button>
               ))}
             </div>
           )}
@@ -103,6 +152,7 @@ export function VehicleSpecPanel({ vehicle, href, onClose }: VehicleSpecPanelPro
           </div>
         </div>
       </div>
-    </aside>
+    </aside>,
+    document.body,
   );
 }

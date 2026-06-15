@@ -63,7 +63,7 @@ export function HomePage() {
           <h1>Estoque premium em <em>branco vidro.</em></h1>
           <p>Comece no tema claro e detalhado. Passe o mouse sobre uma marca para pintar tudo na cor dela, selecione uma ou varias e filtre o estoque — as cores se fundem numa unica paleta.</p>
           <div className="hero-cta">
-            <Link className="button button-primary" to="/catalogo">Ver estoque</Link>
+            <Link className="button cta-all-models" to="/catalogo">Ver todos modelos</Link>
             <Link className="button button-ghost" to="/onde-estamos">Falar com consultor</Link>
           </div>
         </div>

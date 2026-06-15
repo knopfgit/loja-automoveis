@@ -25,7 +25,9 @@ export function VehicleDetailPage() {
 
   const contact = useMutation({
     mutationFn: specialistContact,
-    onSuccess: (result) => window.open(result.whatsappUrl, '_blank', 'noopener,noreferrer'),
+    onSuccess: (result) => {
+      if (result.whatsappUrl) window.open(result.whatsappUrl, '_blank', 'noopener,noreferrer');
+    },
   });
 
   useEffect(() => {
@@ -118,14 +120,30 @@ const frames360 = spinFrames.length >= 1 ? spinFrames : demoFrames;
             className="lead-form"
             onSubmit={(event) => {
               event.preventDefault();
-              contact.mutate({ vehicleId: data.id, ...lead });
+              contact.mutate({
+                // Veiculos de demonstracao nao existem no banco; o lead vai sem vinculo.
+                vehicleId: data.id.startsWith('demo-') ? undefined : data.id,
+                sourcePage: window.location.pathname,
+                message: `Ola! Tenho interesse em ${data.brand} ${data.model}${data.version ? ` ${data.version}` : ''}. Pode me ajudar?`,
+                ...lead,
+              });
             }}
           >
-            <input required placeholder="Seu nome" value={lead.name} onChange={(event) => setLead((current) => ({ ...current, name: event.target.value }))} />
-            <input required placeholder="WhatsApp" value={lead.phone} onChange={(event) => setLead((current) => ({ ...current, phone: event.target.value }))} />
+            <input required placeholder="Seu nome" autoComplete="name" value={lead.name} onChange={(event) => setLead((current) => ({ ...current, name: event.target.value }))} />
+            <input required placeholder="WhatsApp" autoComplete="tel" inputMode="tel" value={lead.phone} onChange={(event) => setLead((current) => ({ ...current, phone: event.target.value }))} />
             <button className="button button-dark" type="submit" disabled={contact.isPending}>
-              <MessageCircle size={18} /> Falar com especialista
+              <MessageCircle size={18} /> {contact.isPending ? 'Enviando...' : 'Falar com especialista'}
             </button>
+            {contact.isError && (
+              <p className="form-feedback form-feedback-error" role="alert">
+                Nao foi possivel enviar agora. Tente novamente em instantes.
+              </p>
+            )}
+            {contact.isSuccess && (
+              <p className="form-feedback form-feedback-ok" role="status">
+                Recebemos seu contato! {contact.data?.whatsappUrl ? 'Abrimos o WhatsApp para voce continuar a conversa.' : 'Um consultor falara com voce em breve.'}
+              </p>
+            )}
           </form>
         </aside>
       </section>

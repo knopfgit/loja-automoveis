@@ -1,41 +1,55 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { CookieConsent } from './components/CookieConsent';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { ForgotPasswordPage, LoginPage, RegisterPage } from './features/auth/AuthPages';
-import { AccountPage, FavoritesPage, PrivacyPage, PurchasesPage, ViewHistoryPage } from './features/customer/CustomerPages';
-import {
-  AcquisitionsPage,
-  AuditPage,
-  CommissionRulesPage,
-  CommissionsPage,
-  CustomersPage,
-  DashboardPage,
-  DocumentConfigPage,
-  DocumentsPage,
-  DrePage,
-  EmployeesPage,
-  FinancialPage,
-  FunnelPage,
-  LeadsPage,
-  MaintenancePage,
-  NotificationsPage,
-  PartsPage,
-  ReportsPage,
-  ReservationsPage,
-  SalesPage,
-  StoreConfigPage,
-  UsersAccessPage,
-  VehiclesAdminPage,
-} from './features/internal';
+import { LoadingState } from './components/State';
 import { CatalogPage } from './features/public/CatalogPage';
 import { HomePage } from './features/public/HomePage';
 import { LocationPage } from './features/public/LocationPage';
 import { VehicleDetailPage } from './features/public/VehicleDetailPage';
 
+// Paginas autenticadas carregadas sob demanda: visitantes do site publico nao
+// baixam o codigo do painel interno nem da area do cliente.
+const auth = () => import('./features/auth/AuthPages');
+const LoginPage = lazy(() => auth().then((m) => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => auth().then((m) => ({ default: m.RegisterPage })));
+const ForgotPasswordPage = lazy(() => auth().then((m) => ({ default: m.ForgotPasswordPage })));
+
+const customer = () => import('./features/customer/CustomerPages');
+const AccountPage = lazy(() => customer().then((m) => ({ default: m.AccountPage })));
+const FavoritesPage = lazy(() => customer().then((m) => ({ default: m.FavoritesPage })));
+const ViewHistoryPage = lazy(() => customer().then((m) => ({ default: m.ViewHistoryPage })));
+const PurchasesPage = lazy(() => customer().then((m) => ({ default: m.PurchasesPage })));
+const PrivacyPage = lazy(() => customer().then((m) => ({ default: m.PrivacyPage })));
+
+const internal = () => import('./features/internal');
+const DashboardPage = lazy(() => internal().then((m) => ({ default: m.DashboardPage })));
+const VehiclesAdminPage = lazy(() => internal().then((m) => ({ default: m.VehiclesAdminPage })));
+const PartsPage = lazy(() => internal().then((m) => ({ default: m.PartsPage })));
+const MaintenancePage = lazy(() => internal().then((m) => ({ default: m.MaintenancePage })));
+const DocumentsPage = lazy(() => internal().then((m) => ({ default: m.DocumentsPage })));
+const FunnelPage = lazy(() => internal().then((m) => ({ default: m.FunnelPage })));
+const ReservationsPage = lazy(() => internal().then((m) => ({ default: m.ReservationsPage })));
+const SalesPage = lazy(() => internal().then((m) => ({ default: m.SalesPage })));
+const LeadsPage = lazy(() => internal().then((m) => ({ default: m.LeadsPage })));
+const CustomersPage = lazy(() => internal().then((m) => ({ default: m.CustomersPage })));
+const CommissionsPage = lazy(() => internal().then((m) => ({ default: m.CommissionsPage })));
+const NotificationsPage = lazy(() => internal().then((m) => ({ default: m.NotificationsPage })));
+const AcquisitionsPage = lazy(() => internal().then((m) => ({ default: m.AcquisitionsPage })));
+const DrePage = lazy(() => internal().then((m) => ({ default: m.DrePage })));
+const FinancialPage = lazy(() => internal().then((m) => ({ default: m.FinancialPage })));
+const CommissionRulesPage = lazy(() => internal().then((m) => ({ default: m.CommissionRulesPage })));
+const EmployeesPage = lazy(() => internal().then((m) => ({ default: m.EmployeesPage })));
+const UsersAccessPage = lazy(() => internal().then((m) => ({ default: m.UsersAccessPage })));
+const DocumentConfigPage = lazy(() => internal().then((m) => ({ default: m.DocumentConfigPage })));
+const StoreConfigPage = lazy(() => internal().then((m) => ({ default: m.StoreConfigPage })));
+const ReportsPage = lazy(() => internal().then((m) => ({ default: m.ReportsPage })));
+const AuditPage = lazy(() => internal().then((m) => ({ default: m.AuditPage })));
+
 export function App() {
   return (
-    <>
+    <Suspense fallback={<LoadingState />}>
       <Routes>
         <Route element={<Layout />}>
           {/* Public */}
@@ -90,6 +104,6 @@ export function App() {
         </Route>
       </Routes>
       <CookieConsent />
-    </>
+    </Suspense>
   );
 }

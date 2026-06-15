@@ -1,5 +1,5 @@
 import type { KeyboardEvent, MouseEvent } from 'react';
-import { Heart, Gauge, Fuel, Calendar } from 'lucide-react';
+import { Heart, Gauge, Fuel, Calendar, Cog } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Vehicle } from '../types';
 import { formatCurrency, imageUrl } from '../utils/format';
@@ -53,9 +53,14 @@ export function VehicleCard({ vehicle, variant = 'standard', href, active, dimme
         <span className="vehicle-brand-label">{vehicle.brand}</span>
         <span className="vehicle-landing-title">{vehicle.model}</span>
         {vehicle.version && <span className="vehicle-landing-version">{vehicle.version}</span>}
+        <span className="vehicle-landing-facts">
+          <span><Calendar size={15} /> {vehicle.modelYear ?? '-'}</span>
+          <span><Gauge size={15} /> {(vehicle.mileage ?? 0).toLocaleString('pt-BR')} km</span>
+          {vehicle.fuel && <span><Fuel size={15} /> {vehicle.fuel}</span>}
+          {vehicle.transmission && <span><Cog size={15} /> {vehicle.transmission}</span>}
+        </span>
         <span className="vehicle-landing-footer">
           <strong className="price">{formatCurrency(vehicle.price)}</strong>
-          <span>Ver detalhes</span>
         </span>
       </span>
     </>
